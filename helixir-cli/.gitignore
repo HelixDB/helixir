@@ -7,6 +7,8 @@
 # configure your local ignore list.
 
 ## File system
+.env
+quickstart.md
 .DS_Store
 desktop.ini
 
