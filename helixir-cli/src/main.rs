@@ -7,7 +7,6 @@ mod cli;
 mod lessons;
 mod validation;
 
-use clearscreen::clear;
 use cli::*;
 use lessons::*;
 use validation::*;
@@ -115,7 +114,17 @@ fn handle_action(action: MenuAction, current_lesson: usize, max_lessons: usize) 
             clear_screen();
             ActionResult::ChangeTo(current_lesson - 1)
         }
-        MenuAction::Check => ActionResult::Continue,
+        MenuAction::Check => {
+            match ParsedSchema::from_file("helixdb-cfg/schema.hx") {
+                Ok(parsed) => {
+                    println!("{:?}", parsed);
+                }
+                Err(e) => {
+                    println!("Parse error: {}", e);
+                }
+            }
+            ActionResult::Continue
+        }
         MenuAction::Help => {
             // TO DO
             ActionResult::Continue
