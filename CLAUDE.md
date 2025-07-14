@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+Do not write any code. Either provide a detailed plan for me to write the code, or provide the code itself and explain it. I'm learning Rust so I want to understand the concepts, and instead of just writing the code for me, make it so that it's // TO DO: for me to fill in the code myself, do not write any of the code yourself unless I ask you to, just provide the skeleton. Never add emojis as well.
+
 ## Project Overview
 
 This is a Rust-based CLI application called "helixir" - a rustling-styled interactive learning tool that teaches users how to use helix-db from 0 to hero. The CLI guides users through lessons covering core helix-db concepts including schema design and query writing.
@@ -59,3 +61,24 @@ The CLI will guide users through progressive lessons:
 4. **Advanced Patterns**: Complex queries and data relationships
 
 Each lesson builds on the previous one, starting from basic concepts and progressing to advanced helix-db usage patterns.
+
+
+## Technical Architecture
+
+### Core Types
+- `MenuAction`: Command enumeration with exhaustive matching
+- `Lesson`: Complete lesson data structure with metadata
+- `ValidationResult`: Comprehensive validation feedback system
+- `FileType`: Strongly typed file categorization
+
+### Module Structure
+- `main.rs`: Application entry point and main loop
+- `lesson.rs`: Lesson management and progression logic
+- `validation.rs`: File parsing and comparison engine  
+- `cli.rs`: Command interface and terminal operations
+
+### Error Handling Strategy
+- Use `Result<T, E>` for all fallible operations
+- Implement custom error types for domain-specific failures
+- Provide actionable error messages with context
+- Graceful degradation for non-critical failures
