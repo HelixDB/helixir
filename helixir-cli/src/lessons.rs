@@ -29,9 +29,9 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
         2 => Lesson {
             id: 2,
             title: "Adding in Edges".into(),
-            instructions: "Write the nodes for continents, countries, and cities. Write your schema in the newly created schema.hx file in the helixdb-cfg directory.".into(),
-            hints: vec!["Use N:: for nodes".into()],
-            schema_answer: Some("lesson_answers/lesson1_schema.hx".into()),
+            instructions: "Create a Continent_to_Country and Country_to_City edge connecting their respective nodes with no properties in schema.hx.".into(),
+            hints: vec!["Use E:: for edges".into()],
+            schema_answer: Some("lesson_answers/lesson2_schema.hx".into()),
             query_answer: None,
         },
         _ => Lesson {

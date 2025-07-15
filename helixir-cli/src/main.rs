@@ -32,6 +32,7 @@ fn main() {
 
     if check_helix_init() {
         current_lesson = 1;
+        display_lesson(current_lesson);
     } else {
         welcome_screen();
     }
@@ -144,6 +145,64 @@ fn handle_action(action: MenuAction, current_lesson: usize, max_lessons: usize) 
                                 println!("Property errors:");
                                 for (node, errors) in &result.property_errors {
                                     println!("Node '{}': ", node);
+                                    if !errors.missing.is_empty() {
+                                        println!("Missing properties: {:?}", errors.missing);
+                                    }
+                                    if !errors.extra.is_empty() {
+                                        println!("Extra properties: {:?}", errors.extra);
+                                    }
+                                }
+                            }
+
+                            if !result.missing_edges.is_empty() {
+                                println!("Missing edges: {:?}", result.missing_edges);
+                            }
+                            if !result.extra_edges.is_empty() {
+                                println!("Extra edges: {:?}", result.extra_edges);
+                            }
+                            if !result.edge_errors.is_empty() {
+                                println!("Edge errors:");
+                                for (edge, errors) in &result.edge_errors {
+                                    println!("Edge '{}': ", edge);
+                                    if let Some((user_from, expected_from)) =
+                                        &errors.from_type_mismatch
+                                    {
+                                        println!(
+                                            "From type mismatch: expected '{}', got '{}'",
+                                            expected_from, user_from
+                                        );
+                                    }
+                                    if let Some((user_to, expected_to)) = &errors.to_type_mismatch {
+                                        println!(
+                                            "To type mismatch: expected '{}', got '{}'",
+                                            expected_to, user_to
+                                        );
+                                    }
+                                    if !errors.property_errors.missing.is_empty() {
+                                        println!(
+                                            "Missing properties: {:?}",
+                                            errors.property_errors.missing
+                                        );
+                                    }
+                                    if !errors.property_errors.extra.is_empty() {
+                                        println!(
+                                            "Extra properties: {:?}",
+                                            errors.property_errors.extra
+                                        );
+                                    }
+                                }
+                            }
+
+                            if !result.missing_vectors.is_empty() {
+                                println!("Missing vectors: {:?}", result.missing_vectors);
+                            }
+                            if !result.extra_vectors.is_empty() {
+                                println!("Extra vectors: {:?}", result.extra_vectors);
+                            }
+                            if !result.vector_errors.is_empty() {
+                                println!("Vector errors:");
+                                for (vector, errors) in &result.vector_errors {
+                                    println!("Vector '{}': ", vector);
                                     if !errors.missing.is_empty() {
                                         println!("Missing properties: {:?}", errors.missing);
                                     }
