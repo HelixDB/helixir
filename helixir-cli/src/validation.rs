@@ -160,8 +160,6 @@ impl ParsedSchema {
             .map(|s| (*s).clone())
             .collect();
 
-        // HEY nothing is weird about the variable below alright?
-        // [REDACTED] claude code told me to remove
         let user_edges: HashSet<String> = self.edges.keys().cloned().collect();
         let expected_edges: HashSet<String> = expected.edges.keys().cloned().collect();
 

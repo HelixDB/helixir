@@ -28,7 +28,9 @@ pub enum MenuAction {
 
 fn main() {
     let mut current_lesson = 0;
-    let max_lessons = 2;
+    let max_lessons = std::fs::read_dir("lesson_answers")
+        .map(|entries| entries.count())
+        .unwrap_or(0);
 
     if check_helix_init() {
         current_lesson = 1;
