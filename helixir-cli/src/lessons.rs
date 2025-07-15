@@ -1,3 +1,5 @@
+use std::vec;
+
 #[derive(Debug)]
 pub struct Lesson {
     pub id: usize,
@@ -6,6 +8,7 @@ pub struct Lesson {
     pub hints: Vec<String>,
     pub schema_answer: Option<String>,
     pub query_answer: Option<String>,
+    pub query_name: Option<Vec<String>>,
 }
 
 pub fn get_lesson(lesson_id: usize) -> Lesson {
@@ -17,6 +20,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
             hints: vec!["Check if helixdb-cfg folder exists".into()],
             schema_answer: None,
             query_answer: None,
+            query_name: None,
         },
         1 => Lesson {
             id: 1,
@@ -25,6 +29,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
             hints: vec!["Use N:: for nodes".into()],
             schema_answer: Some("lesson_answers/lesson1_schema.hx".into()),
             query_answer: None,
+            query_name: None,
         },
         2 => Lesson {
             id: 2,
@@ -33,6 +38,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
             hints: vec!["Use E:: for edges".into()],
             schema_answer: Some("lesson_answers/lesson2_schema.hx".into()),
             query_answer: None,
+            query_name: None,
         },
         3 => Lesson {
             id: 3,
@@ -41,6 +47,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
             hints: vec!["Use E:: for edges".into()],
             schema_answer: Some("lesson_answers/lesson3_schema.hx".into()),
             query_answer: None,
+            query_name: None,
         },
         4 => Lesson {
             id: 4,
@@ -49,6 +56,16 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
             hints: vec!["Use E:: for edges".into()],
             schema_answer: Some("lesson_answers/lesson4_schema.hx".into()),
             query_answer: None,
+            query_name: None,
+        },
+        5 => Lesson {
+            id: 5,
+            title: "Basic Node Creation".into(),
+            instructions: "Now that we have our schema, we need to write queries to insert the data. The best way to go about this given the structure of our data is to go from top (broad) to bottom (narrow) of the hierarchy.\nFirst, we will start with a basic query to create a continent.\nUsually, creation queries almost always include all the properties of the node in the arguments.\nIn this case, we only need to know the continent's name.\nUse `AddN` to add a `Continent` node with property `name`.\nDon't forget to run helix deploy to start up your helix instance!".into(),
+            hints: vec!["Add this header into your query.hx: QUERY createContinent (name: String) =>".into()],
+            schema_answer: Some("lesson_answers/lesson4_schema.hx".into()),
+            query_answer: Some("query_answers/lesson5.json".into()),
+            query_name: Some(vec!["createContinent".into()]),
         },
         _ => Lesson {
             id: lesson_id,
@@ -57,6 +74,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
             hints: vec!["Try going back to a previous lesson.".into()],
             schema_answer: None,
             query_answer: None,
+            query_name: None
         }
     }
 }

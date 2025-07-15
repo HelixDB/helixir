@@ -9,53 +9,46 @@ Do not write any code. Either provide a detailed plan for me to write the code, 
 ### Optimization-Focused Example:
 ```rust
 fn validate_answer(&self, expected: &ParsedSchema) -> ValidationResult {
-    // TO DO: Pre-allocate HashMap with estimated capacity using HashMap::with_capacity()
-    // TO DO: Create empty vectors for missing_nodes and extra_nodes with Vec::new()
+    // TO DO: Pre-allocate HashMap with estimated capacity for property_errors
+    // TO DO: Create empty vectors for missing_nodes and extra_nodes
     
-    // TO DO: Convert self.nodes.keys() to HashSet<String> using .cloned().collect()
-    // OPTIMIZATION: Consider using references instead of cloning if possible
-    // TO DO: Convert expected.nodes.keys() to HashSet<String> using .cloned().collect()
+    // TO DO: Convert self.nodes.keys() to HashSet for efficient set operations
+    // TO DO: Convert expected.nodes.keys() to HashSet for comparison
     
-    // TO DO: Use .difference() method - this is O(n) and efficient for set operations
-    // TO DO: Collect missing nodes using .cloned().collect() into Vec
+    // TO DO: Use set .difference() method to find missing nodes efficiently
+    // TO DO: Use set .difference() method to find extra nodes efficiently
     
-    // TO DO: Use .difference() in reverse to find extra nodes efficiently
-    // TO DO: Collect extra nodes using .cloned().collect() into Vec
+    // TO DO: Use set .intersection() method to find common nodes for property comparison
+    // TO DO: Iterate through common nodes and compare their property HashSets
     
-    // TO DO: Use .intersection() method for O(min(m,n)) performance
-    // TO DO: Iterate through common nodes and compare HashSets directly (efficient comparison)
-    // OPTIMIZATION: HashSet equality is O(n) and well-optimized in Rust
+    // TO DO: Only create PropertyErrors when properties don't match
+    // TO DO: Use HashMap::insert() to store property errors by node name
     
-    // TO DO: Only create PropertyErrors when properties don't match (avoid unnecessary allocations)
-    // TO DO: Use HashMap::insert() only when needed
-    
-    // TO DO: Calculate is_correct using .is_empty() methods (O(1) operations)
-    // TO DO: Return ValidationResult - struct initialization is zero-cost
+    // TO DO: Calculate is_correct by checking if all error collections are empty
+    // TO DO: Return ValidationResult with all computed fields
 }
 ```
 
 ### Performance-Focused Parsing Example:
 ```rust
 fn parse(content: &str) -> Result<Self, String> {
-    // TO DO: Initialize HashMap with HashMap::new() (grows as needed)
-    // TO DO: Create iterator with content.lines().map(str::trim) for lazy evaluation
-    // OPTIMIZATION: Iterator avoids collecting all lines into memory at once
+    // TO DO: Initialize empty HashMap for nodes storage
+    // TO DO: Create iterator from content lines with trimming
     
-    // TO DO: Use while let Some(line) = lines.next() for efficient iteration
-    // TO DO: Use strip_prefix("N::") instead of manual string slicing (safer + faster)
+    // TO DO: Use while let Some(line) pattern for efficient line processing
+    // TO DO: Use strip_prefix() to detect schema types (N::, E::, V::)
     
-    // TO DO: Use find('{') to locate opening brace (efficient string search)
-    // TO DO: Use string slicing [..bracket_pos] for zero-copy substring
+    // TO DO: Use find() method to locate opening brace in schema definition
+    // TO DO: Extract name using string slicing before the brace
     
-    // TO DO: Initialize HashSet with HashSet::new() for properties
-    // TO DO: Use for loop with &mut lines to consume iterator efficiently
+    // TO DO: Initialize empty HashSet for collecting properties
+    // TO DO: Use for loop to consume remaining lines until closing brace
     
-    // TO DO: Use split_once(':') instead of split().collect() (more efficient)
-    // OPTIMIZATION: split_once only finds first occurrence, avoiding vector allocation
-    // TO DO: Use trim() on both parts before creating Property struct
+    // TO DO: Use split_once(':') to separate property name from type
+    // TO DO: Apply trim() to both parts before creating Property struct
     
-    // TO DO: Use HashSet::insert() which handles deduplication automatically
-    // TO DO: Use HashMap::insert() to store node with its properties
+    // TO DO: Insert Property into HashSet (automatic deduplication)
+    // TO DO: Insert completed node with properties into HashMap
 }
 ```
 

@@ -1,8 +1,14 @@
+use crate::lesson_types::*;
+use helix_db::{HelixDB, HelixDBClient};
+use serde::de::{self, Expected};
+use serde::{Deserialize, Serialize};
+use std::ascii::escape_default;
 use std::collections::{HashMap, HashSet};
-use std::fs;
 use std::hash::Hash;
 use std::path::Path;
 use std::process::Command;
+use std::sync::Arc;
+use std::{fs, result};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Property {
@@ -29,6 +35,12 @@ pub struct PropertyErrors {
     pub extra: Vec<String>,
     pub wrong_type: Vec<(String, String, String)>,
 }
+
+#[derive(Debug)]
+pub struct QueryValidator {
+    client: HelixDB,
+}
+
 pub struct ValidationResult {
     pub is_correct: bool,
     pub missing_nodes: Vec<String>,
@@ -46,6 +58,32 @@ pub struct EdgeErrors {
     pub from_type_mismatch: Option<(String, String)>,
     pub to_type_mismatch: Option<(String, String)>,
     pub property_errors: PropertyErrors,
+}
+
+impl QueryValidator {
+    pub fn new() -> Self {
+        return Self {
+            client: HelixDB::new(None, None),
+        };
+    }
+
+    pub async fn execute_and_compare(
+        &self,
+        query_name: &str,
+        input: serde_json::Value,
+        expected: serde_json::Value,
+    ) -> anyhow::Result<bool> {
+        match query_name {
+            "createContinent" => {
+                let input_de: AddContinentInput = serde_json::from_value(input)?;
+                let db_query: CreateContinentResult =
+                    self.client.query("createContinent", &input_de).await?;
+
+                Ok(db_query.continent.name == input_de.name)
+            }
+            _ => Ok(false),
+        }
+    }
 }
 
 impl ParsedSchema {

@@ -1,10 +1,14 @@
 use std::{
+    env::temp_dir,
+    fs::{self, read_to_string},
     io::{self},
     process::Command,
+    time::Instant,
     usize,
 };
 
 mod cli;
+mod lesson_types;
 mod lessons;
 mod validation;
 
@@ -26,14 +30,15 @@ pub enum MenuAction {
     Quit,
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let mut current_lesson = 0;
     let max_lessons = std::fs::read_dir("lesson_answers")
         .map(|entries| entries.count())
         .unwrap_or(0);
 
     if check_helix_init() {
-        current_lesson = 1;
+        current_lesson = 5;
         display_lesson(current_lesson);
     } else {
         welcome_screen();
@@ -42,7 +47,7 @@ fn main() {
         let command = get_user_input();
         let action = parse_command(&command, current_lesson);
         match action {
-            Ok(action) => match handle_action(action, current_lesson, max_lessons) {
+            Ok(action) => match handle_action(action, current_lesson, max_lessons).await {
                 ActionResult::Continue => {
                     display_lesson(current_lesson);
                 }
@@ -110,7 +115,11 @@ fn parse_command(input: &str, current_lesson: usize) -> Result<MenuAction, Strin
     }
 }
 
-fn handle_action(action: MenuAction, current_lesson: usize, max_lessons: usize) -> ActionResult {
+async fn handle_action(
+    action: MenuAction,
+    current_lesson: usize,
+    max_lessons: usize,
+) -> ActionResult {
     match action {
         MenuAction::Back => {
             if current_lesson == 0 {
@@ -124,6 +133,40 @@ fn handle_action(action: MenuAction, current_lesson: usize, max_lessons: usize) 
         MenuAction::Check => {
             clear_screen();
             let lesson = get_lesson(current_lesson);
+
+            if let Some(query_answer_path) = &lesson.query_answer {
+                match Command::new("helix").arg("check").output() {
+                    Ok(output) if output.status.success() => {
+                        println!("Helix check passed");
+
+                        let lesson_data = fs::read_to_string(query_answer_path).unwrap();
+                        let lesson_json: serde_json::Value =
+                            serde_json::from_str(&lesson_data).unwrap();
+
+                        let queries = lesson_json["queries"].as_array().unwrap();
+                        let query_test = &queries[0];
+
+                        let query_name = query_test["query_name"].as_str().unwrap();
+                        let input = query_test["input"].clone();
+                        let expected = query_test["expected_output"].clone();
+
+                        let query_instance: QueryValidator = self::QueryValidator::new();
+                        let comparison = query_instance
+                            .execute_and_compare(query_name, input, expected)
+                            .await;
+                        match comparison {
+                            Ok(true) => println!("Success"),
+                            Ok(false) => println!("Failed"),
+                            Err(e) => println!("Error {}", e),
+                        }
+                        return ActionResult::Continue;
+                    }
+                    _ => {
+                        println!("Helix check failed. Fix your queries.hx file");
+                        return ActionResult::Continue;
+                    }
+                }
+            }
             if let Some(expected_path) = &lesson.schema_answer {
                 match (
                     ParsedSchema::from_file("helixdb-cfg/schema.hx"),
