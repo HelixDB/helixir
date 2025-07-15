@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub struct Lesson {
     pub id: usize,
     pub title: String,
@@ -12,7 +13,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
         0 => Lesson {
             id: 0,
             title: "Setup - Initialize HelixDB".into(),
-            instructions: "Run 'helix init' to set up your helix instance".into(),
+            instructions: "Run 'helix init' to set up your helix instance (you can run it straight in this CLI)".into(),
             hints: vec!["Check if helixdb-cfg folder exists".into()],
             schema_answer: None,
             query_answer: None,
@@ -20,6 +21,14 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
         1 => Lesson {
             id: 1,
             title: "Schema Design - Nodes".into(),
+            instructions: "Write the nodes for continents, countries, and cities. Write your schema in the newly created schema.hx file in the helixdb-cfg directory.".into(),
+            hints: vec!["Use N:: for nodes".into()],
+            schema_answer: Some("lesson_answers/lesson1_schema.hx".into()),
+            query_answer: None,
+        },
+        2 => Lesson {
+            id: 2,
+            title: "Adding in Edges".into(),
             instructions: "Write the nodes for continents, countries, and cities. Write your schema in the newly created schema.hx file in the helixdb-cfg directory.".into(),
             hints: vec!["Use N:: for nodes".into()],
             schema_answer: Some("lesson_answers/lesson1_schema.hx".into()),

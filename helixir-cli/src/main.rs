@@ -36,25 +36,22 @@ fn main() {
         welcome_screen();
     }
     loop {
-        display_lesson(current_lesson);
-
         let command = get_user_input();
         let action = parse_command(&command, current_lesson);
         match action {
-            Ok(action) => {
-                match handle_action(action, current_lesson, max_lessons) {
-                    ActionResult::Continue => {
-                        // do nothing for now
-                    }
-                    ActionResult::ChangeTo(new_lesson) => {
-                        current_lesson = new_lesson;
-                    }
-                    ActionResult::Exit => {
-                        println!("Thanks for using Helixir :)");
-                        break;
-                    }
+            Ok(action) => match handle_action(action, current_lesson, max_lessons) {
+                ActionResult::Continue => {
+                    display_lesson(current_lesson);
                 }
-            }
+                ActionResult::ChangeTo(new_lesson) => {
+                    current_lesson = new_lesson;
+                    display_lesson(current_lesson);
+                }
+                ActionResult::Exit => {
+                    println!("Thanks for using Helixir :)");
+                    break;
+                }
+            },
             Err(error) => println!("Error: {}", error),
         }
     }
@@ -62,10 +59,12 @@ fn main() {
 
 fn display_lesson(lesson_id: usize) {
     let lesson = get_lesson(lesson_id);
+
     println!("═══════════════════════════════════════");
     println!("Lesson {}: {}", lesson.id, lesson.title);
     println!("═══════════════════════════════════════");
     println!("{}", lesson.instructions);
+    println!();
     println!();
     println!("Commands: (n)ext, (b)ack, (c)heck, (h)elp, (q)uit");
 }
@@ -120,57 +119,66 @@ fn handle_action(action: MenuAction, current_lesson: usize, max_lessons: usize) 
             ActionResult::ChangeTo(current_lesson - 1)
         }
         MenuAction::Check => {
+            clear_screen();
             let lesson = get_lesson(current_lesson);
             if let Some(expected_path) = &lesson.schema_answer {
-                let user_schema = match ParsedSchema::from_file("helixdb-cfg/schema.hx") {
-                    Ok(schema) => schema,
-                    Err(e) => {
-                        println!("Error loading your schema: {}", e);
-                        return ActionResult::Continue;
-                    }
-                };
-                let expected_schema = match ParsedSchema::from_file(expected_path) {
-                    Ok(schema) => schema,
-                    Err(e) => {
-                        println!("Error loading your answer: {}", e);
-                        return ActionResult::Continue;
-                    }
-                };
+                match (
+                    ParsedSchema::from_file("helixdb-cfg/schema.hx"),
+                    ParsedSchema::from_file(expected_path),
+                ) {
+                    (Ok(user_schema), Ok(expected_schema)) => {
+                        let result = user_schema.validate_answer(&expected_schema);
 
-                let result = user_schema.validate_answer(&expected_schema);
-                if result.is_correct {
-                    clear_screen();
-                    print!("Correct! Moving on to the next lesson!\n");
-                    return ActionResult::ChangeTo(current_lesson + 1);
-                } else {
-                    if !result.missing_nodes.is_empty() {
-                        println!("Missing nodes: {:?}", result.missing_nodes);
-                    }
-                    if !result.extra_nodes.is_empty() {
-                        println!("Extra nodes (not expected): {:?}", result.extra_nodes);
-                    }
-                    if !result.property_errors.is_empty() {
-                        println!("Property errors:");
-                        for (node, errors) in &result.property_errors {
-                            println!("Node '{}': ", node);
-                            if !errors.missing.is_empty() {
-                                println!("Missing properties: {:?}", errors.missing);
+                        if result.is_correct {
+                            println!("Schema passed, good job!");
+                        } else {
+                            println!("Try again! Here is what might be wrong:");
+
+                            if !result.missing_nodes.is_empty() {
+                                println!("Missing nodes: {:?}", result.missing_nodes);
                             }
-                            if !errors.extra.is_empty() {
-                                println!("Extra properties: {:?}", errors.extra);
+                            if !result.extra_nodes.is_empty() {
+                                println!("Extra nodes: {:?}", result.extra_nodes);
+                            }
+                            if !result.property_errors.is_empty() {
+                                println!("Property errors:");
+                                for (node, errors) in &result.property_errors {
+                                    println!("Node '{}': ", node);
+                                    if !errors.missing.is_empty() {
+                                        println!("Missing properties: {:?}", errors.missing);
+                                    }
+                                    if !errors.extra.is_empty() {
+                                        println!("Extra properties: {:?}", errors.extra);
+                                    }
+                                }
                             }
                         }
                     }
-                    clear_screen();
-                    println!("\nTry again! Use (h)elp if you need hints.");
+                    (Err(e), _) => println!("Could not load your schema: {}", e),
+                    (_, Err(e)) => println!("Could not load expected schema: {}", e),
+                }
+                return ActionResult::Continue;
+            } else if current_lesson == 0 {
+                match Command::new("helix").arg("check").output() {
+                    Ok(output) if output.status.success() => {
+                        println!("Helix initialization completed");
+                        return ActionResult::ChangeTo(current_lesson + 1);
+                    }
+                    _ => {
+                        println!("Helix initialization: Run 'helix init' to continue");
+                        return ActionResult::Continue;
+                    }
                 }
             } else {
-                println!("This lesson doesn't require schema validation.");
+                return ActionResult::Continue;
             }
-            ActionResult::Continue
         }
         MenuAction::Help => {
-            // TO DO
+            clear_screen();
+            let lesson_hints = get_lesson(current_lesson).hints;
+            println!("HINT:");
+            lesson_hints.iter().for_each(|hint| println!("{}", hint));
+
             ActionResult::Continue
         }
         MenuAction::Next => {
@@ -187,13 +195,26 @@ fn handle_action(action: MenuAction, current_lesson: usize, max_lessons: usize) 
 }
 
 fn welcome_screen() {
+    let current_lesson = 0;
     clear_screen();
-    println!(r"██╗    ██╗███████╗██╗      ██████╗ ██████╗ ███╗   ███╗███████╗    ████████╗ ██████╗ ");
-    println!(r"██║    ██║██╔════╝██║     ██╔════╝██╔═══██╗████╗ ████║██╔════╝    ╚══██╔══╝██╔═══██╗");
-    println!(r"██║ █╗ ██║█████╗  ██║     ██║     ██║   ██║██╔████╔██║█████╗         ██║   ██║   ██║");
-    println!(r"██║███╗██║██╔══╝  ██║     ██║     ██║   ██║██║╚██╔╝██║██╔══╝         ██║   ██║   ██║");
-    println!(r"╚███╔███╔╝███████╗███████╗╚██████╗╚██████╔╝██║ ╚═╝ ██║███████╗       ██║   ╚██████╔╝");
-    println!(r" ╚══╝╚══╝ ╚══════╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝       ╚═╝    ╚═════╝ ");
+    println!(
+        r"██╗    ██╗███████╗██╗      ██████╗ ██████╗ ███╗   ███╗███████╗    ████████╗ ██████╗ "
+    );
+    println!(
+        r"██║    ██║██╔════╝██║     ██╔════╝██╔═══██╗████╗ ████║██╔════╝    ╚══██╔══╝██╔═══██╗"
+    );
+    println!(
+        r"██║ █╗ ██║█████╗  ██║     ██║     ██║   ██║██╔████╔██║█████╗         ██║   ██║   ██║"
+    );
+    println!(
+        r"██║███╗██║██╔══╝  ██║     ██║     ██║   ██║██║╚██╔╝██║██╔══╝         ██║   ██║   ██║"
+    );
+    println!(
+        r"╚███╔███╔╝███████╗███████╗╚██████╗╚██████╔╝██║ ╚═╝ ██║███████╗       ██║   ╚██████╔╝"
+    );
+    println!(
+        r" ╚══╝╚══╝ ╚══════╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝       ╚═╝    ╚═════╝ "
+    );
     println!("");
     println!(r"██╗  ██╗███████╗██╗     ██╗██╗  ██╗██╗██████╗ ");
     println!(r"██║  ██║██╔════╝██║     ██║╚██╗██╔╝██║██╔══██╗");
@@ -205,4 +226,5 @@ fn welcome_screen() {
     println!("A rustling-styled interactive learning tool for mastering helix-db from 0 to hero!");
     println!();
     println!("Let's begin your journey! 🚀");
+    display_lesson(current_lesson);
 }
