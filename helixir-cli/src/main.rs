@@ -1,6 +1,7 @@
 use std::{
     io::{self},
     process::Command,
+    usize,
 };
 
 mod cli;
@@ -26,12 +27,13 @@ pub enum MenuAction {
 }
 
 fn main() {
-    welcome_screen();
     let mut current_lesson = 0;
     let max_lessons = 2;
 
     if check_helix_init() {
         current_lesson = 1;
+    } else {
+        welcome_screen();
     }
     loop {
         display_lesson(current_lesson);
@@ -99,7 +101,10 @@ fn parse_command(input: &str, current_lesson: usize) -> Result<MenuAction, Strin
         "n" => Ok(MenuAction::Next),
         "b" => Ok(MenuAction::Back),
         "q" => Ok(MenuAction::Quit),
-        _ => Err(format!("Invalid command: {}", input)),
+        _ => {
+            clear_screen();
+            Err(format!("Invalid command: {}", input))
+        }
     }
 }
 
@@ -115,13 +120,51 @@ fn handle_action(action: MenuAction, current_lesson: usize, max_lessons: usize) 
             ActionResult::ChangeTo(current_lesson - 1)
         }
         MenuAction::Check => {
-            match ParsedSchema::from_file("helixdb-cfg/schema.hx") {
-                Ok(parsed) => {
-                    println!("{:?}", parsed);
+            let lesson = get_lesson(current_lesson);
+            if let Some(expected_path) = &lesson.schema_answer {
+                let user_schema = match ParsedSchema::from_file("helixdb-cfg/schema.hx") {
+                    Ok(schema) => schema,
+                    Err(e) => {
+                        println!("Error loading your schema: {}", e);
+                        return ActionResult::Continue;
+                    }
+                };
+                let expected_schema = match ParsedSchema::from_file(expected_path) {
+                    Ok(schema) => schema,
+                    Err(e) => {
+                        println!("Error loading your answer: {}", e);
+                        return ActionResult::Continue;
+                    }
+                };
+
+                let result = user_schema.validate_answer(&expected_schema);
+                if result.is_correct {
+                    clear_screen();
+                    print!("Correct! Moving on to the next lesson!\n");
+                    return ActionResult::ChangeTo(current_lesson + 1);
+                } else {
+                    if !result.missing_nodes.is_empty() {
+                        println!("Missing nodes: {:?}", result.missing_nodes);
+                    }
+                    if !result.extra_nodes.is_empty() {
+                        println!("Extra nodes (not expected): {:?}", result.extra_nodes);
+                    }
+                    if !result.property_errors.is_empty() {
+                        println!("Property errors:");
+                        for (node, errors) in &result.property_errors {
+                            println!("Node '{}': ", node);
+                            if !errors.missing.is_empty() {
+                                println!("Missing properties: {:?}", errors.missing);
+                            }
+                            if !errors.extra.is_empty() {
+                                println!("Extra properties: {:?}", errors.extra);
+                            }
+                        }
+                    }
+                    println!("\nTry again! Use (h)elp if you need hints.");
                 }
-                Err(e) => {
-                    println!("Parse error: {}", e);
-                }
+            } else {
+                println!("This lesson doesn't require schema validation.");
             }
             ActionResult::Continue
         }
@@ -130,7 +173,8 @@ fn handle_action(action: MenuAction, current_lesson: usize, max_lessons: usize) 
             ActionResult::Continue
         }
         MenuAction::Next => {
-            if current_lesson == max_lessons {
+            if current_lesson >= max_lessons {
+                clear_screen();
                 println!("You are already at the last lesson, you cant go any further.");
                 return ActionResult::Continue;
             }

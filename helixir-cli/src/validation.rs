@@ -1,5 +1,4 @@
 use std::collections::{HashMap, HashSet};
-use std::f32::consts::LN_10;
 use std::fs;
 use std::path::Path;
 use std::process::Command;
@@ -72,6 +71,52 @@ impl ParsedSchema {
             i += 1;
         }
         Ok(ParsedSchema { nodes })
+    }
+
+    pub fn validate_answer(&self, expected: &ParsedSchema) -> ValidationResult {
+        let mut property_errors: HashMap<String, PropertyErrors> = HashMap::new();
+
+        let users_answer: HashSet<String> = self.nodes.keys().cloned().collect();
+        let answer: HashSet<String> = expected.nodes.keys().cloned().collect();
+
+        let missing_nodes: Vec<String> = answer.difference(&users_answer).cloned().collect();
+        let extra_nodes: Vec<String> = users_answer.difference(&answer).cloned().collect();
+
+        let common_nodes: Vec<String> = users_answer.intersection(&answer).cloned().collect();
+
+        for node in &common_nodes {
+            let user_properties: &HashSet<Property> = &self.nodes[node];
+            let expected_properties: &HashSet<Property> = &expected.nodes[node];
+
+            if user_properties != expected_properties {
+                let missing: Vec<String> = expected_properties
+                    .difference(user_properties)
+                    .map(|prop| prop.name.clone())
+                    .collect();
+
+                let extra: Vec<String> = user_properties
+                    .difference(expected_properties)
+                    .map(|prop| prop.name.clone())
+                    .collect();
+
+                let prop_errors = PropertyErrors {
+                    missing,
+                    extra,
+                    wrong_type: Vec::new(),
+                };
+
+                property_errors.insert(node.clone(), prop_errors);
+            }
+        }
+
+        ValidationResult {
+            is_correct: missing_nodes.is_empty()
+                && extra_nodes.is_empty()
+                && property_errors.is_empty(),
+            missing_nodes,
+            extra_nodes,
+            property_errors,
+        }
     }
 }
 

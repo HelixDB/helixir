@@ -2,6 +2,50 @@
 
 Do not write any code. Either provide a detailed plan for me to write the code, or provide the code itself and explain it. I'm learning Rust so I want to understand the concepts, and instead of just writing the code for me, make it so that it's // TO DO: for me to fill in the code myself, do not write any of the code yourself unless I ask you to, just provide the skeleton. Never add emojis as well.
 
+## Code Assistance Style
+
+**IMPORTANT**: When providing code help, use detailed TODO comments instead of writing implementation:
+
+### Good Example:
+```rust
+fn validate_answer(&self, expected: &ParsedSchema) -> ValidationResult {
+    // TO DO: Create empty vectors for missing_nodes and extra_nodes
+    // TO DO: Create empty HashMap for property_errors
+    
+    // TO DO: Convert self.nodes.keys() to HashSet<String> using .cloned().collect()
+    // TO DO: Convert expected.nodes.keys() to HashSet<String> using .cloned().collect()
+    
+    // TO DO: Use .difference() method to find nodes in expected but not in user
+    // TO DO: Push each missing node name to missing_nodes vector
+    
+    // TO DO: Use .difference() method to find nodes in user but not in expected  
+    // TO DO: Push each extra node name to extra_nodes vector
+    
+    // TO DO: Use .intersection() method to find common nodes
+    // TO DO: For each common node, compare property HashSets
+    // TO DO: If properties don't match, create PropertyErrors and add to property_errors HashMap
+    
+    // TO DO: Calculate is_correct: true if all error vectors/maps are empty
+    // TO DO: Return ValidationResult with all the collected data
+}
+```
+
+### Bad Example:
+```rust
+fn validate_answer(&self, expected: &ParsedSchema) -> ValidationResult {
+    let mut missing_nodes = Vec::new();
+    let user_nodes: HashSet<String> = self.nodes.keys().cloned().collect();
+    // ... (providing too much implementation)
+}
+```
+
+**Key Principles**:
+- Provide detailed step-by-step TODO comments
+- Explain the Rust concepts and methods to use
+- Give context about what data structures and operations are needed
+- Let me implement the actual code to learn the language
+- Focus on teaching Rust patterns and best practices through the TODOs
+
 ## Project Overview
 
 This is a Rust-based CLI application called "helixir" - a rustling-styled interactive learning tool that teaches users how to use helix-db from 0 to hero. The CLI guides users through lessons covering core helix-db concepts including schema design and query writing.
