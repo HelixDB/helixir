@@ -33,43 +33,31 @@ impl ParsedSchema {
     }
 
     fn parse(content: &str) -> Result<Self, String> {
-        let mut nodes: HashMap<String, HashSet<Property>> = HashMap::new();
-        let lines: Vec<&str> = content.lines().collect();
-        let mut i = 0;
+        let mut nodes = HashMap::new();
+        let mut lines = content.lines().map(str::trim);
 
-        while i < lines.len() {
-            let line = lines[i].trim();
-            if line.starts_with("N::") {
-                let after_n = &line[3..];
-                if let Some(bracket_pos) = after_n.find("{") {
+        while let Some(line) = lines.next() {
+            if let Some(after_n) = line.strip_prefix("N::") {
+                if let Some(bracket_pos) = after_n.find('{') {
                     let node_name = after_n[..bracket_pos].trim();
-                    let mut properties: HashSet<Property> = HashSet::new();
-                    i += 1;
-                    while i < lines.len() {
-                        let prop_line = lines[i].trim();
+                    let mut properties = HashSet::new();
+
+                    for prop_line in &mut lines {
                         if prop_line == "}" {
                             break;
                         }
-
-                        if prop_line.contains(":") {
-                            let parts: Vec<&str> = prop_line.split(":").collect();
-                            if parts.len() == 2 {
-                                let prop_name = parts[0].trim();
-                                let prop_type = parts[1].trim();
-                                let property = Property {
-                                    name: prop_name.to_string(),
-                                    prop_type: prop_type.to_string(),
-                                };
-                                properties.insert(property);
-                            }
+                        if let Some((prop_name, prop_type)) = prop_line.split_once(':') {
+                            properties.insert(Property {
+                                name: prop_name.trim().to_string(),
+                                prop_type: prop_type.trim().to_string(),
+                            });
                         }
-                        i += 1;
                     }
                     nodes.insert(node_name.to_string(), properties);
                 }
             }
-            i += 1;
         }
+
         Ok(ParsedSchema { nodes })
     }
 
