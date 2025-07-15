@@ -28,7 +28,8 @@ pub struct ValidationResult {
 
 impl ParsedSchema {
     pub fn from_file(file_path: &str) -> Result<Self, String> {
-        let content = fs::read_to_string(file_path).expect("Err reading file");
+        let content = fs::read_to_string(file_path)
+            .map_err(|e| format!("Failed to read file '{}': {}", file_path, e))?;
         Self::parse(&content)
     }
 
