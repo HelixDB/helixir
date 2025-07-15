@@ -148,14 +148,20 @@ impl ParsedSchema {
     pub fn validate_answer(&self, expected: &ParsedSchema) -> ValidationResult {
         let mut property_errors: HashMap<String, PropertyErrors> = HashMap::new();
 
-        let users_answer: HashSet<String> = self.nodes.keys().cloned().collect();
-        let answer: HashSet<String> = expected.nodes.keys().cloned().collect();
+        let users_answer: HashSet<&String> = self.nodes.keys().collect();
+        let answer: HashSet<&String> = expected.nodes.keys().collect();
 
-        let missing_nodes: Vec<String> = answer.difference(&users_answer).cloned().collect();
-        let extra_nodes: Vec<String> = users_answer.difference(&answer).cloned().collect();
+        let missing_nodes: Vec<String> = answer
+            .difference(&users_answer)
+            .map(|s| (*s).clone())
+            .collect();
+        let extra_nodes: Vec<String> = users_answer
+            .difference(&answer)
+            .map(|s| (*s).clone())
+            .collect();
 
         // HEY nothing is weird about the variable below alright?
-        // just let the user edge brah
+        // [REDACTED] claude code told me to remove
         let user_edges: HashSet<String> = self.edges.keys().cloned().collect();
         let expected_edges: HashSet<String> = expected.edges.keys().cloned().collect();
 
@@ -164,7 +170,10 @@ impl ParsedSchema {
         let mut edge_errors: HashMap<String, EdgeErrors> = HashMap::new();
 
         let common_edges: Vec<String> = user_edges.intersection(&expected_edges).cloned().collect();
-        let common_nodes: Vec<String> = users_answer.intersection(&answer).cloned().collect();
+        let common_nodes: Vec<String> = users_answer
+            .intersection(&answer)
+            .map(|s| (*s).clone())
+            .collect();
 
         for node in &common_nodes {
             let user_properties: &HashSet<Property> = &self.nodes[node];
