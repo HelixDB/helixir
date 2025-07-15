@@ -161,6 +161,7 @@ fn handle_action(action: MenuAction, current_lesson: usize, max_lessons: usize) 
                             }
                         }
                     }
+                    clear_screen();
                     println!("\nTry again! Use (h)elp if you need hints.");
                 }
             } else {
