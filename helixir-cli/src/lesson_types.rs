@@ -62,3 +62,27 @@ pub struct CityData {
     pub name: String,
     pub description: String,
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SetCapitalInput {
+    pub country_id: String,
+    pub city_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SetCapitalOutput {
+    pub country_capital: CapitalEdgeData,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SetCapitalResult {
+    pub country_capital: CapitalEdgeData,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CapitalEdgeData {
+    pub id: String,
+    pub from_node: String,
+    pub to_node: String,
+    pub label: String,
+}

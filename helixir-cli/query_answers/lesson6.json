@@ -4,18 +4,18 @@
             "query_name": "createCountry",
             "input": {
                 "continent_id": "some_continent_id",
-                "name": "France",
-                "currency": "EUR",
-                "population": 67000000,
-                "gdp": 2937.0
+                "name": "United Kingdom",
+                "currency": "GBP",
+                "population": 67500000,
+                "gdp": 3131.0
             },
             "expected_output": {
                 "country": {
                     "id": "any",
-                    "name": "France",
-                    "currency": "EUR",
-                    "population": 67000000,
-                    "gdp": 2937.0
+                    "name": "United Kingdom",
+                    "currency": "GBP",
+                    "population": 67500000,
+                    "gdp": 3131.0
                 }
             }
         },
@@ -23,14 +23,78 @@
             "query_name": "createCity",
             "input": {
                 "country_id": "some_country_id",
-                "name": "Paris",
-                "description": "Capital of France"
+                "name": "London",
+                "description": "Capital of United Kingdom"
             },
             "expected_output": {
                 "city": {
                     "id": "any",
-                    "name": "Paris",
-                    "description": "Capital of France"
+                    "name": "London",
+                    "description": "Capital of United Kingdom"
+                }
+            }
+        },
+        {
+            "query_name": "createCountry",
+            "input": {
+                "continent_id": "some_continent_id",
+                "name": "Germany",
+                "currency": "EUR",
+                "population": 83200000,
+                "gdp": 4259.0
+            },
+            "expected_output": {
+                "country": {
+                    "id": "any",
+                    "name": "Germany",
+                    "currency": "EUR",
+                    "population": 83200000,
+                    "gdp": 4259.0
+                }
+            }
+        },
+        {
+            "query_name": "createCity",
+            "input": {
+                "country_id": "some_country_id",
+                "name": "Berlin",
+                "description": "Capital of Germany"
+            },
+            "expected_output": {
+                "city": {
+                    "id": "any",
+                    "name": "Berlin",
+                    "description": "Capital of Germany"
+                }
+            }
+        },
+        {
+            "query_name": "createCity",
+            "input": {
+                "country_id": "some_country_id",
+                "name": "Manchester",
+                "description": "Major city in United Kingdom"
+            },
+            "expected_output": {
+                "city": {
+                    "id": "any",
+                    "name": "Manchester",
+                    "description": "Major city in United Kingdom"
+                }
+            }
+        },
+        {
+            "query_name": "createCity",
+            "input": {
+                "country_id": "some_country_id",
+                "name": "Hamburg",
+                "description": "Major port city in Germany"
+            },
+            "expected_output": {
+                "city": {
+                    "id": "any",
+                    "name": "Hamburg",
+                    "description": "Major port city in Germany"
                 }
             }
         }

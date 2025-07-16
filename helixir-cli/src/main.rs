@@ -141,16 +141,25 @@ async fn handle_action(
                         ParsedQueries::from_file(expected_query_file),
                     ) {
                         (Ok(user_queries), Ok(expected_queries)) => {
-                            let validation_result = user_queries.validate_against(&expected_queries);
-                            
+                            let validation_result =
+                                user_queries.validate_against(&expected_queries);
+
                             if !validation_result.is_correct {
-                                println!("Query validation failed. Please fix your queries.hx file:");
-                                
+                                println!(
+                                    "Query validation failed. Please fix your queries.hx file:"
+                                );
+
                                 if !validation_result.missing_queries.is_empty() {
-                                    println!("Missing queries: {:?}", validation_result.missing_queries);
+                                    println!(
+                                        "Missing queries: {:?}",
+                                        validation_result.missing_queries
+                                    );
                                 }
                                 if !validation_result.extra_queries.is_empty() {
-                                    println!("Extra queries: {:?}", validation_result.extra_queries);
+                                    println!(
+                                        "Extra queries: {:?}",
+                                        validation_result.extra_queries
+                                    );
                                 }
                                 for (query_name, error) in &validation_result.query_errors {
                                     println!("Query '{}': {}", query_name, error);
@@ -169,7 +178,7 @@ async fn handle_action(
                         }
                     }
                 }
-                
+
                 match get_or_prompt_instance_id() {
                     Ok(instance_id) => {
                         println!("Attempting to redeploy instance, may take a lil bit of time");
@@ -186,33 +195,41 @@ async fn handle_action(
                                     serde_json::from_str(&lesson_data).unwrap();
 
                                 let queries = lesson_json["queries"].as_array().unwrap();
-                                let query_test = &queries[0];
+                                for (index, query_test) in queries.iter().enumerate() {
+                                    let query_name = query_test["query_name"].as_str().unwrap();
+                                    let input = query_test["input"].clone();
+                                    let expected = query_test["expected_output"].clone();
 
-                                let query_name = query_test["query_name"].as_str().unwrap();
-                                let input = query_test["input"].clone();
-                                let expected = query_test["expected_output"].clone();
-
-                                let query_instance: QueryValidator = self::QueryValidator::new();
-                                let comparison = query_instance
-                                    .execute_and_compare(query_name, input, expected)
-                                    .await;
-                                match comparison {
-                                    Ok((_success, message)) => {
-                                        println!("{}", message);
-                                    }
-                                    Err(e) => {
-                                        let error_msg = e.to_string();
-                                        if error_msg.contains("localhost:6969")
-                                            || error_msg.contains("connection")
-                                        {
-                                            println!(
-                                                "Connection Error: Cannot connect to HelixDB server."
-                                            );
-                                            println!(
-                                                "Did you run 'helix deploy' to start the database server?"
-                                            );
-                                        } else {
-                                            println!("Error: {}", e);
+                                    println!(
+                                        "Testing query {} of {}: {}",
+                                        index + 1,
+                                        queries.len(),
+                                        query_name
+                                    );
+                                    let query_instance: QueryValidator =
+                                        self::QueryValidator::new();
+                                    let comparison = query_instance
+                                        .execute_and_compare(query_name, input, expected)
+                                        .await;
+                                    match comparison {
+                                        Ok((success, message)) => {
+                                            println!("Query {}: {}", query_name, message);
+                                            if !success {
+                                                return ActionResult::Continue;
+                                            }
+                                        }
+                                        Err(e) => {
+                                            let error_msg = e.to_string();
+                                            if error_msg.contains("error decoding response body") {
+                                                println!(
+                                                    "Deserialization error in query {}: {}",
+                                                    query_name, error_msg
+                                                );
+                                                println!(
+                                                    "Check if server response format matches lesson_types.rs structures"
+                                                );
+                                            }
+                                            return ActionResult::Continue;
                                         }
                                     }
                                 }

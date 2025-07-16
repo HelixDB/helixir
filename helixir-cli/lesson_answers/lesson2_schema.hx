@@ -16,7 +16,6 @@ N::City {
 }
 
 
-
 E::Continent_to_Country {
     From: Continent,
     To: Country,

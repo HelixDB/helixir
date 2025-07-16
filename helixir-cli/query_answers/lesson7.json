@@ -1,0 +1,32 @@
+{
+    "queries": [
+        {
+            "query_name": "setCapital",
+            "input": {
+                "country_id": "uk_country_id",
+                "city_id": "london_city_id"
+            },
+            "expected_output": {
+                "country_capital": {
+                    "id": "any",
+                    "from": "uk_country_id",
+                    "to": "london_city_id"
+                }
+            }
+        },
+        {
+            "query_name": "setCapital",
+            "input": {
+                "country_id": "germany_country_id",
+                "city_id": "berlin_city_id"
+            },
+            "expected_output": {
+                "country_capital": {
+                    "id": "any",
+                    "from": "germany_country_id",
+                    "to": "berlin_city_id"
+                }
+            }
+        }
+    ]
+}

@@ -2,6 +2,7 @@ use crate::lesson_types::*;
 use helix_db::{HelixDB, HelixDBClient};
 use serde::de::{self, Expected};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::ascii::escape_default;
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
@@ -9,7 +10,6 @@ use std::path::Path;
 use std::process::Command;
 use std::sync::Arc;
 use std::{fs, io, result};
-use serde_json::json;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Property {
@@ -111,7 +111,7 @@ impl QueryValidator {
                         "id": db_result.continent.id,
                         "name": db_result.continent.name
                     });
-                    
+
                     if let Err(e) = save_created_entity("continents", &continent_data) {
                         println!("Warning: Could not save continent data: {}", e);
                     }
@@ -131,17 +131,18 @@ impl QueryValidator {
                 }
             }
             "createCountry" => {
-                let continent_id = get_latest_entity_id("continents")
-                    .ok_or_else(|| anyhow::anyhow!("No continent found. Please run lesson 5 first to create a continent."))?;
-                
+                let continent_id = get_latest_entity_id("continents").ok_or_else(|| {
+                    anyhow::anyhow!(
+                        "No continent found. Please run lesson 5 first to create a continent."
+                    )
+                })?;
+
                 let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
                 input_obj["continent_id"] = json!(continent_id);
-                
+
                 let input_de: CreateCountryInput = serde_json::from_value(input_obj)?;
-                let db_result: CreateCountryResult = self
-                    .client
-                    .query("createCountry", &input_de)
-                    .await?;
+                let db_result: CreateCountryResult =
+                    self.client.query("createCountry", &input_de).await?;
 
                 let matches = db_result.country.name == input_de.name
                     && db_result.country.currency == input_de.currency
@@ -157,7 +158,7 @@ impl QueryValidator {
                         "gdp": db_result.country.gdp,
                         "continent_id": continent_id
                     });
-                    
+
                     if let Err(e) = save_created_entity("countries", &country_data) {
                         println!("Warning: Could not save country data: {}", e);
                     }
@@ -176,7 +177,16 @@ impl QueryValidator {
                 }
             }
             "createCity" => {
-                let input_de: CreateCityInput = serde_json::from_value(input)?;
+                let country_id = get_latest_entity_id("countries").ok_or_else(|| {
+                    anyhow::anyhow!(
+                        "No country found. Please run lesson 6 first to create a country."
+                    )
+                })?;
+
+                let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+                input_obj["country_id"] = json!(country_id);
+
+                let input_de: CreateCityInput = serde_json::from_value(input_obj)?;
                 let db_result: CreateCityResult =
                     self.client.query("createCity", &input_de).await?;
 
@@ -184,17 +194,72 @@ impl QueryValidator {
                     && db_result.city.description == input_de.description;
 
                 if matches {
+                    let city_data = json!({
+                        "id": db_result.city.id,
+                        "name": db_result.city.name,
+                        "description": db_result.city.description,
+                        "country_id": country_id
+                    });
+
+                    if let Err(e) = save_created_entity("cities", &city_data) {
+                        println!("Warning: Could not save city data: {}", e);
+                    }
+
                     let msg = format!(
-                        "City created!\n {}",
+                        "City created successfully!\nDatabase result:\n{}\nSaved city ID for future lessons.",
                         serde_json::to_string_pretty(&db_result)?
                     );
                     Ok((true, msg))
                 } else {
                     let msg = format!(
-                        "City data mismatch\n {}",
+                        "City data mismatch\nDatabase result:\n{}",
                         serde_json::to_string_pretty(&db_result)?
                     );
                     Ok((false, msg))
+                }
+            }
+            "setCapital" => {
+                let country_id = get_latest_entity_id("countries").ok_or_else(|| {
+                    anyhow::anyhow!(
+                        "No country found. Please create a country first in previous lessons."
+                    )
+                })?;
+
+                let city_id = get_latest_entity_id("cities").ok_or_else(|| {
+                    anyhow::anyhow!(
+                        "No city found. Please create a city first in previous lessons."
+                    )
+                })?;
+
+                let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+                input_obj["country_id"] = json!(country_id);
+                input_obj["city_id"] = json!(city_id);
+
+                let input_de: SetCapitalInput = serde_json::from_value(input_obj)?;
+                let db_result: SetCapitalResult =
+                    self.client.query("setCapital", &input_de).await?;
+
+                let edge_matches = db_result.country_capital.from_node == country_id
+                    && db_result.country_capital.to_node == city_id;
+
+                if edge_matches {
+                    let success_msg = format!(
+                        "Capital relationship created successfully!\nDatabase result:\n{}\nCountry '{}' now has capital city '{}'.",
+                        serde_json::to_string_pretty(&db_result)?,
+                        country_id,
+                        city_id
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "Capital relationship mismatch\nExpected: from='{}', to='{}'\nGot: from='{}', to='{}'\nDatabase result:\n{}",
+                        country_id,
+                        city_id,
+                        db_result.country_capital.from_node,
+                        db_result.country_capital.to_node,
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
                 }
             }
             _ => Ok((
@@ -523,19 +588,19 @@ impl ParsedQueries {
 
         while i < lines.len() {
             let line = lines[i].trim();
-            
+
             if line.starts_with("QUERY ") {
                 if let Some(arrow_pos) = line.find(" =>") {
                     let query_def = &line[6..arrow_pos];
-                    
+
                     if let Some(paren_pos) = query_def.find('(') {
                         let query_name = query_def[..paren_pos].trim().to_string();
                         let params_end = query_def.rfind(')').unwrap_or(query_def.len());
-                        let parameters = query_def[paren_pos+1..params_end].trim().to_string();
-                        
+                        let parameters = query_def[paren_pos + 1..params_end].trim().to_string();
+
                         let mut body_lines = Vec::new();
                         i += 1;
-                        
+
                         while i < lines.len() {
                             let body_line = lines[i].trim();
                             if body_line.is_empty() {
@@ -549,13 +614,16 @@ impl ParsedQueries {
                             body_lines.push(body_line);
                             i += 1;
                         }
-                        
+
                         let body = body_lines.join("\n");
-                        queries.insert(query_name.clone(), ParsedQuery {
-                            name: query_name,
-                            parameters,
-                            body,
-                        });
+                        queries.insert(
+                            query_name.clone(),
+                            ParsedQuery {
+                                name: query_name,
+                                parameters,
+                                body,
+                            },
+                        );
                     }
                 }
             }
@@ -567,38 +635,45 @@ impl ParsedQueries {
 
     pub fn validate_against(&self, expected: &ParsedQueries) -> QueryValidationResult {
         let mut query_errors = HashMap::new();
-        
+
         let user_queries: HashSet<String> = self.queries.keys().cloned().collect();
         let expected_queries: HashSet<String> = expected.queries.keys().cloned().collect();
-        
-        let missing_queries: Vec<String> = expected_queries.difference(&user_queries).cloned().collect();
+
+        let missing_queries: Vec<String> = expected_queries
+            .difference(&user_queries)
+            .cloned()
+            .collect();
         let extra_queries: Vec<String> = Vec::new();
-        
+
         for query_name in user_queries.intersection(&expected_queries) {
             let user_query = &self.queries[query_name];
             let expected_query = &expected.queries[query_name];
-            
+
             let mut errors = Vec::new();
-            
+
             if user_query.parameters != expected_query.parameters {
-                errors.push(format!("Parameters mismatch. Expected: ({}), Got: ({})", 
-                    expected_query.parameters, user_query.parameters));
+                errors.push(format!(
+                    "Parameters mismatch. Expected: ({}), Got: ({})",
+                    expected_query.parameters, user_query.parameters
+                ));
             }
-            
+
             let user_body_normalized = normalize_query_body(&user_query.body);
             let expected_body_normalized = normalize_query_body(&expected_query.body);
-            
+
             if user_body_normalized != expected_body_normalized {
                 errors.push("Query body differs from expected implementation".to_string());
             }
-            
+
             if !errors.is_empty() {
                 query_errors.insert(query_name.clone(), errors.join(". "));
             }
         }
-        
+
         QueryValidationResult {
-            is_correct: missing_queries.is_empty() && extra_queries.is_empty() && query_errors.is_empty(),
+            is_correct: missing_queries.is_empty()
+                && extra_queries.is_empty()
+                && query_errors.is_empty(),
             missing_queries,
             extra_queries,
             query_errors,
@@ -616,7 +691,7 @@ fn normalize_query_body(body: &str) -> String {
 
 pub fn load_instance_data() -> serde_json::Value {
     let instance_file = "helixdb-cfg/instance.json";
-    
+
     if let Ok(content) = fs::read_to_string(instance_file) {
         serde_json::from_str(&content).unwrap_or_else(|_| create_default_instance_data())
     } else {
@@ -639,63 +714,70 @@ pub fn save_instance_data(data: &serde_json::Value) -> Result<(), String> {
     let instance_file = "helixdb-cfg/instance.json";
     let content = serde_json::to_string_pretty(data)
         .map_err(|e| format!("Failed to serialize instance data: {}", e))?;
-    
+
     fs::write(instance_file, content)
         .map_err(|e| format!("Failed to write instance file: {}", e))?;
-    
+
     Ok(())
 }
 
-pub fn save_created_entity(entity_type: &str, entity_data: &serde_json::Value) -> Result<(), String> {
+pub fn save_created_entity(
+    entity_type: &str,
+    entity_data: &serde_json::Value,
+) -> Result<(), String> {
     let mut instance_data = load_instance_data();
     if instance_data["created_entities"][entity_type].is_array() {
         instance_data["created_entities"][entity_type] = json!([entity_data]);
     } else {
         return Err(format!("Invalid entity type: {}", entity_type));
     }
-    
+
     save_instance_data(&instance_data)
 }
 
 pub fn get_latest_entity_id(entity_type: &str) -> Option<String> {
     let instance_data = load_instance_data();
-    
+
     if let Some(entities) = instance_data["created_entities"][entity_type].as_array() {
         if let Some(latest_entity) = entities.last() {
             return latest_entity["id"].as_str().map(|s| s.to_string());
         }
     }
-    
+
     None
 }
 
 pub fn get_or_prompt_instance_id() -> Result<String, String> {
     let instance_file = "helixdb-cfg/instance.txt";
-    
+
     if let Ok(instance_id) = std::fs::read_to_string(instance_file) {
         let instance_id = instance_id.trim().to_string();
-        
+
         let mut instance_data = load_instance_data();
         instance_data["instance_id"] = json!(instance_id.clone());
         let _ = save_instance_data(&instance_data);
-        
+
         return Ok(instance_id);
     }
-    
+
     println!("First time running queries! We need your HelixDB instance ID.");
     println!("Run 'helix instances' in another terminal and copy your instance ID.");
     println!("Enter your instance ID:");
-    
+
     let mut input = String::new();
-    io::stdin().read_line(&mut input).map_err(|e| format!("Failed to read input: {}", e))?;
+    io::stdin()
+        .read_line(&mut input)
+        .map_err(|e| format!("Failed to read input: {}", e))?;
     let instance_id = input.trim().to_string();
-    
-    std::fs::write(instance_file, &instance_id).map_err(|e| format!("Failed to save instance ID: {}", e))?;
-    
+
+    std::fs::write(instance_file, &instance_id)
+        .map_err(|e| format!("Failed to save instance ID: {}", e))?;
+
     let mut instance_data = load_instance_data();
     instance_data["instance_id"] = json!(instance_id.clone());
-    save_instance_data(&instance_data).map_err(|e| format!("Failed to save to instance.json: {}", e))?;
-    
+    save_instance_data(&instance_data)
+        .map_err(|e| format!("Failed to save to instance.json: {}", e))?;
+
     println!("Instance ID saved! Future query runs will be automatic.");
     Ok(instance_id)
 }
@@ -706,25 +788,27 @@ pub fn redeploy_instance(instance_id: &str) -> bool {
         .arg("redeploy")
         .arg(instance_id)
         .output();
-    
+
     match output {
         Ok(result) => {
             let stdout_str = String::from_utf8_lossy(&result.stdout);
             let stderr_str = String::from_utf8_lossy(&result.stderr);
-            
-            if stdout_str.contains("No Helix instance found") || stderr_str.contains("No Helix instance found") {
+
+            if stdout_str.contains("No Helix instance found")
+                || stderr_str.contains("No Helix instance found")
+            {
                 println!("Error: Invalid instance ID '{}'", instance_id);
                 println!("Run 'helix instances' to get your correct instance ID");
                 return false;
             }
-            
+
             if !stdout_str.is_empty() {
                 println!("Output: {}", stdout_str);
             }
             if !stderr_str.is_empty() {
                 println!("Error output: {}", stderr_str);
             }
-            
+
             if result.status.success() && !stdout_str.contains("No Helix instance found") {
                 println!("Redeployed instance successfully");
                 true
