@@ -1,0 +1,14 @@
+{
+    "queries": [
+        {
+            "query_name": "createContinent",
+            "input": {
+                "name": "Europe"
+            },
+            "expected_output": {
+                "id": "any",
+                "name": "Europe"
+            }
+        }
+    ]
+}

@@ -15,7 +15,6 @@ N::City {
     zip_codes: [String]
 }
 
-
 E::Continent_to_Country {
     From: Continent,
     To: Country,
@@ -24,6 +23,13 @@ E::Continent_to_Country {
 }
 
 E::Country_to_City {
+    From: Country,
+    To: City,
+    Properties: {
+    }
+}
+
+E::Country_to_Capital {
     From: Country,
     To: City,
     Properties: {

@@ -1,10 +1,14 @@
 use std::{
+    env::temp_dir,
+    fs::{self, read_to_string},
     io::{self},
     process::Command,
+    time::Instant,
     usize,
 };
 
 mod cli;
+mod lesson_types;
 mod lessons;
 mod validation;
 
@@ -28,7 +32,9 @@ pub enum MenuAction {
 
 fn main() {
     let mut current_lesson = 0;
-    let max_lessons = 2;
+    let max_lessons = std::fs::read_dir("lesson_answers")
+        .map(|entries| entries.count())
+        .unwrap_or(0);
 
     if check_helix_init() {
         current_lesson = 1;
@@ -36,11 +42,13 @@ fn main() {
     } else {
         welcome_screen();
     }
+    let rt = tokio::runtime::Runtime::new().expect("Failed to create tokio runtime");
+
     loop {
         let command = get_user_input();
         let action = parse_command(&command, current_lesson);
         match action {
-            Ok(action) => match handle_action(action, current_lesson, max_lessons) {
+            Ok(action) => match rt.block_on(handle_action(action, current_lesson, max_lessons)) {
                 ActionResult::Continue => {
                     display_lesson(current_lesson);
                 }
@@ -108,7 +116,11 @@ fn parse_command(input: &str, current_lesson: usize) -> Result<MenuAction, Strin
     }
 }
 
-fn handle_action(action: MenuAction, current_lesson: usize, max_lessons: usize) -> ActionResult {
+async fn handle_action(
+    action: MenuAction,
+    current_lesson: usize,
+    max_lessons: usize,
+) -> ActionResult {
     match action {
         MenuAction::Back => {
             if current_lesson == 0 {
@@ -122,6 +134,120 @@ fn handle_action(action: MenuAction, current_lesson: usize, max_lessons: usize) 
         MenuAction::Check => {
             clear_screen();
             let lesson = get_lesson(current_lesson);
+
+            if let Some(query_answer_path) = &lesson.query_answer {
+                if let Some(expected_query_file) = &lesson.query_answer_file {
+                    match (
+                        ParsedQueries::from_file("helixdb-cfg/queries.hx"),
+                        ParsedQueries::from_file(expected_query_file),
+                    ) {
+                        (Ok(user_queries), Ok(expected_queries)) => {
+                            let validation_result =
+                                user_queries.validate_against(&expected_queries);
+
+                            if !validation_result.is_correct {
+                                println!(
+                                    "Query validation failed. Please fix your queries.hx file:"
+                                );
+
+                                if !validation_result.missing_queries.is_empty() {
+                                    println!(
+                                        "Missing queries: {:?}",
+                                        validation_result.missing_queries
+                                    );
+                                }
+                                if !validation_result.extra_queries.is_empty() {
+                                    println!(
+                                        "Extra queries: {:?}",
+                                        validation_result.extra_queries
+                                    );
+                                }
+                                for (query_name, error) in &validation_result.query_errors {
+                                    println!("Query '{}': {}", query_name, error);
+                                }
+                                return ActionResult::Continue;
+                            }
+                            println!("Query structure validation passed");
+                        }
+                        (Err(e), _) => {
+                            println!("Could not parse your queries.hx file: {}", e);
+                            return ActionResult::Continue;
+                        }
+                        (_, Err(e)) => {
+                            println!("Could not parse expected queries file: {}", e);
+                            return ActionResult::Continue;
+                        }
+                    }
+                }
+
+                match get_or_prompt_instance_id() {
+                    Ok(instance_id) => {
+                        println!("Attempting to redeploy instance, may take a lil bit of time");
+                        if !redeploy_instance(&instance_id) {
+                            println!("Cannot proceed without successful redeploy");
+                            return ActionResult::Continue;
+                        }
+                        match Command::new("helix").arg("check").output() {
+                            Ok(output) if output.status.success() => {
+                                println!("Helix check passed");
+
+                                let lesson_data = fs::read_to_string(query_answer_path).unwrap();
+                                let lesson_json: serde_json::Value =
+                                    serde_json::from_str(&lesson_data).unwrap();
+
+                                let queries = lesson_json["queries"].as_array().unwrap();
+                                for (index, query_test) in queries.iter().enumerate() {
+                                    let query_name = query_test["query_name"].as_str().unwrap();
+                                    let input = query_test["input"].clone();
+                                    let expected = query_test["expected_output"].clone();
+
+                                    println!(
+                                        "Testing query {} of {}: {}",
+                                        index + 1,
+                                        queries.len(),
+                                        query_name
+                                    );
+                                    let query_instance: QueryValidator =
+                                        self::QueryValidator::new();
+                                    let comparison = query_instance
+                                        .execute_and_compare(query_name, input, expected)
+                                        .await;
+                                    match comparison {
+                                        Ok((success, message)) => {
+                                            println!("Query {}: {}", query_name, message);
+                                            if !success {
+                                                return ActionResult::Continue;
+                                            }
+                                        }
+                                        Err(e) => {
+                                            let error_msg = e.to_string();
+                                            if error_msg.contains("error decoding response body") {
+                                                println!(
+                                                    "Deserialization error in query {}: {}",
+                                                    query_name, error_msg
+                                                );
+                                                println!(
+                                                    "Check if server response format matches lesson_types.rs structures"
+                                                );
+                                            }
+                                            return ActionResult::Continue;
+                                        }
+                                    }
+                                }
+                                return ActionResult::Continue;
+                            }
+                            _ => {
+                                println!("Helix check failed. Fix your queries.hx file");
+                                return ActionResult::Continue;
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        println!("Error getting instance ID: {}", e);
+                        return ActionResult::Continue;
+                    }
+                }
+            }
             if let Some(expected_path) = &lesson.schema_answer {
                 match (
                     ParsedSchema::from_file("helixdb-cfg/schema.hx"),
@@ -284,6 +410,6 @@ fn welcome_screen() {
     println!("═══════════════════════════════════════");
     println!("A rustling-styled interactive learning tool for mastering helix-db from 0 to hero!");
     println!();
-    println!("Let's begin your journey! 🚀");
+    println!("Let's begin your journey!");
     display_lesson(current_lesson);
 }
