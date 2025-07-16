@@ -67,6 +67,15 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
             query_answer: Some("query_answers/lesson5.json".into()),
             query_name: Some(vec!["createContinent".into()]),
         },
+        6 => Lesson {
+            id: 6,
+            title: "Basic Node Creation".into(),
+            instructions: "Most of the nodes in our schema are related to other nodes,\nwhich means that we have to also create edges between them.\nHowever, we can optimize this process by creating both the node\nand the edge connecting it to other existing nodes in one query.\nFor this example, we will create a country node and connect it\nto its corresponding continent node.To do this, we will need to know all\nthe properties of our `Country` node and also the `Continent` node’s id.\nWith that information, we will first create a new `Country` node using `AddN`.\nThen we will get the `Continent`≈ node via the node’s ID so that we can create a\n`Continent_to_Country` edge going from the created `Continent` to `Country` node\nusing `AddE`.We will also do the same thing for creating a city node.".into(),
+            hints: vec!["Add this header into your query.hx: QUERY createContinent (name: String) =>".into()],
+            schema_answer: Some("lesson_answers/lesson4_schema.hx".into()),
+            query_answer: Some("query_answers/lesson6.json".into()),
+            query_name: Some(vec!["createCountry".into(), "createCity".into()]),
+        },
         _ => Lesson {
             id: lesson_id,
             title: "Lesson Not Found".into(),

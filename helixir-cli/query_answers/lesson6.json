@@ -1,0 +1,38 @@
+{
+    "queries": [
+        {
+            "query_name": "createCountry",
+            "input": {
+                "continent_id": "some_continent_id",
+                "name": "France",
+                "currency": "EUR",
+                "population": 67000000,
+                "gdp": 2937.0
+            },
+            "expected_output": {
+                "country": {
+                    "id": "any",
+                    "name": "France",
+                    "currency": "EUR",
+                    "population": 67000000,
+                    "gdp": 2937.0
+                }
+            }
+        },
+        {
+            "query_name": "createCity",
+            "input": {
+                "country_id": "some_country_id",
+                "name": "Paris",
+                "description": "Capital of France"
+            },
+            "expected_output": {
+                "city": {
+                    "id": "any",
+                    "name": "Paris",
+                    "description": "Capital of France"
+                }
+            }
+        }
+    ]
+}

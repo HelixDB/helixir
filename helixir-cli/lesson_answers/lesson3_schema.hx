@@ -4,12 +4,15 @@ N::Continent {
 
 N::Country {
     name: String,
-    currency: String
+    currency: String,
+    population: U64,
+    gdp: F64
 }
 
 N::City {
     name: String,
-    description: String
+    description: String,
+    zip_codes: [String]
 }
 
 E::Continent_to_Country {

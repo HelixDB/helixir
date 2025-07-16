@@ -38,7 +38,7 @@ async fn main() {
         .unwrap_or(0);
 
     if check_helix_init() {
-        current_lesson = 5;
+        current_lesson = 1;
         display_lesson(current_lesson);
     } else {
         welcome_screen();
@@ -135,34 +135,62 @@ async fn handle_action(
             let lesson = get_lesson(current_lesson);
 
             if let Some(query_answer_path) = &lesson.query_answer {
-                match Command::new("helix").arg("check").output() {
-                    Ok(output) if output.status.success() => {
-                        println!("Helix check passed");
-
-                        let lesson_data = fs::read_to_string(query_answer_path).unwrap();
-                        let lesson_json: serde_json::Value =
-                            serde_json::from_str(&lesson_data).unwrap();
-
-                        let queries = lesson_json["queries"].as_array().unwrap();
-                        let query_test = &queries[0];
-
-                        let query_name = query_test["query_name"].as_str().unwrap();
-                        let input = query_test["input"].clone();
-                        let expected = query_test["expected_output"].clone();
-
-                        let query_instance: QueryValidator = self::QueryValidator::new();
-                        let comparison = query_instance
-                            .execute_and_compare(query_name, input, expected)
-                            .await;
-                        match comparison {
-                            Ok(true) => println!("Success"),
-                            Ok(false) => println!("Failed"),
-                            Err(e) => println!("Error {}", e),
+                match get_or_prompt_instance_id() {
+                    Ok(instance_id) => {
+                        println!("Attempting to redeploy instance, may take a lil bit of time");
+                        if !redeploy_instance(&instance_id) {
+                            println!("Cannot proceed without successful redeploy");
+                            return ActionResult::Continue;
                         }
-                        return ActionResult::Continue;
+                        match Command::new("helix").arg("check").output() {
+                            Ok(output) if output.status.success() => {
+                                println!("Helix check passed");
+
+                                let lesson_data = fs::read_to_string(query_answer_path).unwrap();
+                                let lesson_json: serde_json::Value =
+                                    serde_json::from_str(&lesson_data).unwrap();
+
+                                let queries = lesson_json["queries"].as_array().unwrap();
+                                let query_test = &queries[0];
+
+                                let query_name = query_test["query_name"].as_str().unwrap();
+                                let input = query_test["input"].clone();
+                                let expected = query_test["expected_output"].clone();
+
+                                let query_instance: QueryValidator = self::QueryValidator::new();
+                                let comparison = query_instance
+                                    .execute_and_compare(query_name, input, expected)
+                                    .await;
+                                match comparison {
+                                    Ok((_success, message)) => {
+                                        println!("{}", message);
+                                    }
+                                    Err(e) => {
+                                        let error_msg = e.to_string();
+                                        if error_msg.contains("localhost:6969")
+                                            || error_msg.contains("connection")
+                                        {
+                                            println!(
+                                                "Connection Error: Cannot connect to HelixDB server."
+                                            );
+                                            println!(
+                                                "Did you run 'helix deploy' to start the database server?"
+                                            );
+                                        } else {
+                                            println!("Error: {}", e);
+                                        }
+                                    }
+                                }
+                                return ActionResult::Continue;
+                            }
+                            _ => {
+                                println!("Helix check failed. Fix your queries.hx file");
+                                return ActionResult::Continue;
+                            }
+                        }
                     }
-                    _ => {
-                        println!("Helix check failed. Fix your queries.hx file");
+                    Err(e) => {
+                        println!("Error getting instance ID: {}", e);
                         return ActionResult::Continue;
                     }
                 }
@@ -329,6 +357,6 @@ fn welcome_screen() {
     println!("═══════════════════════════════════════");
     println!("A rustling-styled interactive learning tool for mastering helix-db from 0 to hero!");
     println!();
-    println!("Let's begin your journey! 🚀");
+    println!("Let's begin your journey!");
     display_lesson(current_lesson);
 }
