@@ -1,0 +1,79 @@
+{
+    "queries": [
+        {
+            "query_name": "embedDescription",
+            "input": {
+                "city_id": "london_city_id",
+                "vector": [
+                    0.1,
+                    0.2,
+                    0.3,
+                    0.4,
+                    0.5
+                ]
+            },
+            "expected_output": {
+                "embedding": {
+                    "id": "any",
+                    "vector": [
+                        0.1,
+                        0.2,
+                        0.3,
+                        0.4,
+                        0.5
+                    ]
+                }
+            }
+        },
+        {
+            "query_name": "embedDescription",
+            "input": {
+                "city_id": "berlin_city_id",
+                "vector": [
+                    0.9,
+                    0.8,
+                    0.7,
+                    0.6,
+                    0.5
+                ]
+            },
+            "expected_output": {
+                "embedding": {
+                    "id": "any",
+                    "vector": [
+                        0.9,
+                        0.8,
+                        0.7,
+                        0.6,
+                        0.5
+                    ]
+                }
+            }
+        },
+        {
+            "query_name": "embedDescription",
+            "input": {
+                "city_id": "manchester_city_id",
+                "vector": [
+                    0.2,
+                    0.4,
+                    0.6,
+                    0.8,
+                    1.0
+                ]
+            },
+            "expected_output": {
+                "embedding": {
+                    "id": "any",
+                    "vector": [
+                        0.2,
+                        0.4,
+                        0.6,
+                        0.8,
+                        1.0
+                    ]
+                }
+            }
+        }
+    ]
+}

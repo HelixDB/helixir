@@ -40,7 +40,7 @@ impl App {
     
     pub fn initialize(&mut self) {
         if check_helix_init() {
-            self.current_lesson = 1;
+            self.current_lesson = 8;
             display_lesson(self.current_lesson);
         } else {
             welcome_screen();

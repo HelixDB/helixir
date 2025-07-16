@@ -18,7 +18,7 @@ impl QueryValidator {
         match query_name {
             "createContinent" => {
                 let input_de: AddContinentInput = serde_json::from_value(input)?;
-                let db_result: CreateContinentResult = self
+                let db_result: AddContinentResult = self
                     .client
                     .query("createContinent", &input_de)
                     .await
@@ -62,8 +62,8 @@ impl QueryValidator {
                 let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
                 input_obj["continent_id"] = json!(continent_id);
 
-                let input_de: CreateCountryInput = serde_json::from_value(input_obj)?;
-                let db_result: CreateCountryResult =
+                let input_de: AddCountryInput = serde_json::from_value(input_obj)?;
+                let db_result: AddCountryResult =
                     self.client.query("createCountry", &input_de).await?;
 
                 let matches = db_result.country.name == input_de.name
@@ -108,9 +108,8 @@ impl QueryValidator {
                 let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
                 input_obj["country_id"] = json!(country_id);
 
-                let input_de: CreateCityInput = serde_json::from_value(input_obj)?;
-                let db_result: CreateCityResult =
-                    self.client.query("createCity", &input_de).await?;
+                let input_de: AddCityInput = serde_json::from_value(input_obj)?;
+                let db_result: AddCityResult = self.client.query("createCity", &input_de).await?;
 
                 let matches = db_result.city.name == input_de.name
                     && db_result.city.description == input_de.description;
@@ -157,8 +156,8 @@ impl QueryValidator {
                 input_obj["country_id"] = json!(country_id);
                 input_obj["city_id"] = json!(city_id);
 
-                let input_de: SetCapitalInput = serde_json::from_value(input_obj)?;
-                let db_result: SetCapitalResult =
+                let input_de: AddCapitalInput = serde_json::from_value(input_obj)?;
+                let db_result: AddCapitalResult =
                     self.client.query("setCapital", &input_de).await?;
 
                 let edge_matches = db_result.country_capital.from_node == country_id
@@ -174,11 +173,51 @@ impl QueryValidator {
                     Ok((true, success_msg))
                 } else {
                     let error_msg = format!(
-                        "Capital relationship mismatch\nExpected: from='{}', to='{}'\nGot: from='{}', to='{}'\nDatabase result:\n{}",
+                        "Capital relationship mismatch\nExpected: from_node='{}', to_node='{}'\nGot: from_node='{}', to_node='{}'\nDatabase result:\n{}",
                         country_id,
                         city_id,
                         db_result.country_capital.from_node,
                         db_result.country_capital.to_node,
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
+            "embedDescription" => {
+                let city_id = get_latest_entity_id("cities").ok_or_else(|| {
+                    anyhow::anyhow!(
+                        "No city found. Please create a city first in previous lessons."
+                    )
+                })?;
+
+                let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+                input_obj["city_id"] = json!(city_id);
+
+                let input_de: CreateDescEmbeddingInput = serde_json::from_value(input_obj)?;
+                let db_result: CreateDescEmbeddingResult = self
+                    .client
+                    .query("embedDescription", &input_de)
+                    .await
+                    .map_err(|e| {
+                        anyhow::anyhow!("Query failed: {}. Check your query name and syntax.", e)
+                    })?;
+
+                let vector_matches = !db_result.embedding.data.is_empty()
+                    && db_result.embedding.data.len() == input_de.vector.len();
+
+                if vector_matches {
+                    let success_msg = format!(
+                        "Embedding created successfully!\nDatabase result:\n{}\nCity '{}' now has description embedding with {} dimensions.",
+                        serde_json::to_string_pretty(&db_result)?,
+                        city_id,
+                        db_result.embedding.data.len()
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "Embedding vector mismatch\nExpected vector length: {}\nGot vector length: {}\nDatabase result:\n{}",
+                        input_de.vector.len(),
+                        db_result.embedding.data.len(),
                         serde_json::to_string_pretty(&db_result)?
                     );
                     Ok((false, error_msg))

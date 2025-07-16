@@ -95,6 +95,16 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
             query_answer_file: Some("lesson_answers/lesson7_queries.hx".into()),
             query_name: Some(vec!["setCapital".into()]),
         },
+        8 => Lesson {
+            id: 8,
+            title: "Creating Vector Embeddings".into(),
+            instructions: "In order to add meta relationships into our graph,\nwe will connect nodes together with the edges that\ndefine the meta relationships. For this example,\nwe will create a Country_to_Capital edge from a Country\nnode to a City node.\n\nWrite a query to set a City node as the capital city of a Country node using their IDs.".into(),
+            hints: vec!["Add this header into your query.hx: QUERY embedDescription (city_id: ID, vector: [F64]) =>".into()],
+            schema_answer: Some("lesson_answers/lesson4_schema.hx".into()),
+            query_answer: Some("query_answers/lesson8.json".into()),
+            query_answer_file: Some("lesson_answers/lesson8_queries.hx".into()),
+            query_name: Some(vec!["embedDescription".into()]),
+        },
         _ => Lesson {
             id: lesson_id,
             title: "Lesson Not Found".into(),
