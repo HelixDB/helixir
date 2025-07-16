@@ -105,6 +105,16 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
             query_answer_file: Some("lesson_answers/lesson8_queries.hx".into()),
             query_name: Some(vec!["embedDescription".into()]),
         },
+        9 => Lesson {
+            id: 9,
+            title: "Get Nodes by ID".into(),
+            instructions: "Now that we know how to create nodes and their relationships, we need to be able to retrieve nodes from our graph. The simplest way is to retrieve nodes when we know their ID. Let's write queries to get a continent, country, and city node by their respective IDs. Write 3 queries to get Continent, Country, and City by node ID.".into(),
+            hints: vec!["Add this header into your query.hx: QUERY embedDescription (city_id: ID, vector: [F64]) =>".into()],
+            schema_answer: Some("lesson_answers/lesson4_schema.hx".into()),
+            query_answer: Some("query_answers/lesson9.json".into()),
+            query_answer_file: Some("lesson_answers/lesson9_queries.hx".into()),
+            query_name: Some(vec!["getContinent".into(),"getCountry".into(), "getCity".into()]),
+        },
         _ => Lesson {
             id: lesson_id,
             title: "Lesson Not Found".into(),

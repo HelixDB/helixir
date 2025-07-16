@@ -114,3 +114,36 @@ pub struct CityEmbeddingEdgeData {
     pub to_node: String,
     pub label: String,
 }
+
+// get continent, city and country
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetContinentInput {
+    pub continent_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetContinentResult {
+    pub continent: ContinentData,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountryInput {
+    pub country_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountryResult {
+    pub country: CountryData,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCityInput {
+    pub city_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCityResult {
+    pub city: CityData,
+}
+

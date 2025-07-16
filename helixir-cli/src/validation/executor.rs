@@ -223,6 +223,114 @@ impl QueryValidator {
                     Ok((false, error_msg))
                 }
             }
+            "getContinent" => {
+                let continent_id = get_latest_entity_id("continents").ok_or_else(|| {
+                    anyhow::anyhow!(
+                        "No continent found. Please run lesson 5 first to create a continent."
+                    )
+                })?;
+
+                let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+                input_obj["continent_id"] = json!(continent_id);
+
+                let input_de: GetContinentInput = serde_json::from_value(input_obj)?;
+                let db_result: GetContinentResult = self
+                    .client
+                    .query("getContinent", &input_de)
+                    .await
+                    .map_err(|e| {
+                        anyhow::anyhow!("Query failed: {}. Check your query name and syntax.", e)
+                    })?;
+
+                let continent_exists = !db_result.continent.id.is_empty()
+                    && !db_result.continent.name.is_empty();
+
+                if continent_exists {
+                    let success_msg = format!(
+                        "Continent retrieved successfully!\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "Continent retrieval failed or returned empty data\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
+            "getCountry" => {
+                let country_id = get_latest_entity_id("countries").ok_or_else(|| {
+                    anyhow::anyhow!(
+                        "No country found. Please run lesson 6 first to create a country."
+                    )
+                })?;
+
+                let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+                input_obj["country_id"] = json!(country_id);
+
+                let input_de: GetCountryInput = serde_json::from_value(input_obj)?;
+                let db_result: GetCountryResult = self
+                    .client
+                    .query("getCountry", &input_de)
+                    .await
+                    .map_err(|e| {
+                        anyhow::anyhow!("Query failed: {}. Check your query name and syntax.", e)
+                    })?;
+
+                let country_exists = !db_result.country.id.is_empty()
+                    && !db_result.country.name.is_empty();
+
+                if country_exists {
+                    let success_msg = format!(
+                        "Country retrieved successfully!\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "Country retrieval failed or returned empty data\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
+            "getCity" => {
+                let city_id = get_latest_entity_id("cities").ok_or_else(|| {
+                    anyhow::anyhow!(
+                        "No city found. Please run lesson 7 first to create a city."
+                    )
+                })?;
+
+                let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+                input_obj["city_id"] = json!(city_id);
+
+                let input_de: GetCityInput = serde_json::from_value(input_obj)?;
+                let db_result: GetCityResult = self
+                    .client
+                    .query("getCity", &input_de)
+                    .await
+                    .map_err(|e| {
+                        anyhow::anyhow!("Query failed: {}. Check your query name and syntax.", e)
+                    })?;
+
+                let city_exists = !db_result.city.id.is_empty()
+                    && !db_result.city.name.is_empty();
+
+                if city_exists {
+                    let success_msg = format!(
+                        "City retrieved successfully!\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "City retrieval failed or returned empty data\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
             _ => Ok((
                 false,
                 format!(
