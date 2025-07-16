@@ -135,6 +135,41 @@ async fn handle_action(
             let lesson = get_lesson(current_lesson);
 
             if let Some(query_answer_path) = &lesson.query_answer {
+                if let Some(expected_query_file) = &lesson.query_answer_file {
+                    match (
+                        ParsedQueries::from_file("helixdb-cfg/queries.hx"),
+                        ParsedQueries::from_file(expected_query_file),
+                    ) {
+                        (Ok(user_queries), Ok(expected_queries)) => {
+                            let validation_result = user_queries.validate_against(&expected_queries);
+                            
+                            if !validation_result.is_correct {
+                                println!("Query validation failed. Please fix your queries.hx file:");
+                                
+                                if !validation_result.missing_queries.is_empty() {
+                                    println!("Missing queries: {:?}", validation_result.missing_queries);
+                                }
+                                if !validation_result.extra_queries.is_empty() {
+                                    println!("Extra queries: {:?}", validation_result.extra_queries);
+                                }
+                                for (query_name, error) in &validation_result.query_errors {
+                                    println!("Query '{}': {}", query_name, error);
+                                }
+                                return ActionResult::Continue;
+                            }
+                            println!("Query structure validation passed");
+                        }
+                        (Err(e), _) => {
+                            println!("Could not parse your queries.hx file: {}", e);
+                            return ActionResult::Continue;
+                        }
+                        (_, Err(e)) => {
+                            println!("Could not parse expected queries file: {}", e);
+                            return ActionResult::Continue;
+                        }
+                    }
+                }
+                
                 match get_or_prompt_instance_id() {
                     Ok(instance_id) => {
                         println!("Attempting to redeploy instance, may take a lil bit of time");

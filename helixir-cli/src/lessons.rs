@@ -8,6 +8,7 @@ pub struct Lesson {
     pub hints: Vec<String>,
     pub schema_answer: Option<String>,
     pub query_answer: Option<String>,
+    pub query_answer_file: Option<String>,
     pub query_name: Option<Vec<String>>,
 }
 
@@ -20,6 +21,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
             hints: vec!["Check if helixdb-cfg folder exists".into()],
             schema_answer: None,
             query_answer: None,
+            query_answer_file: None,
             query_name: None,
         },
         1 => Lesson {
@@ -29,6 +31,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
             hints: vec!["Use N:: for nodes".into()],
             schema_answer: Some("lesson_answers/lesson1_schema.hx".into()),
             query_answer: None,
+            query_answer_file: None,
             query_name: None,
         },
         2 => Lesson {
@@ -38,6 +41,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
             hints: vec!["Use E:: for edges".into()],
             schema_answer: Some("lesson_answers/lesson2_schema.hx".into()),
             query_answer: None,
+            query_answer_file: None,
             query_name: None,
         },
         3 => Lesson {
@@ -47,6 +51,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
             hints: vec!["Use E:: for edges".into()],
             schema_answer: Some("lesson_answers/lesson3_schema.hx".into()),
             query_answer: None,
+            query_answer_file: None,
             query_name: None,
         },
         4 => Lesson {
@@ -56,6 +61,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
             hints: vec!["Use E:: for edges".into()],
             schema_answer: Some("lesson_answers/lesson4_schema.hx".into()),
             query_answer: None,
+            query_answer_file: None,
             query_name: None,
         },
         5 => Lesson {
@@ -65,6 +71,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
             hints: vec!["Add this header into your query.hx: QUERY createContinent (name: String) =>".into()],
             schema_answer: Some("lesson_answers/lesson4_schema.hx".into()),
             query_answer: Some("query_answers/lesson5.json".into()),
+            query_answer_file: None,
             query_name: Some(vec!["createContinent".into()]),
         },
         6 => Lesson {
@@ -74,6 +81,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
             hints: vec!["Add this header into your query.hx: QUERY createContinent (name: String) =>".into()],
             schema_answer: Some("lesson_answers/lesson4_schema.hx".into()),
             query_answer: Some("query_answers/lesson6.json".into()),
+            query_answer_file: Some("lesson_answers/lesson6_queries.hx".into()),
             query_name: Some(vec!["createCountry".into(), "createCity".into()]),
         },
         _ => Lesson {
@@ -83,6 +91,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
             hints: vec!["Try going back to a previous lesson.".into()],
             schema_answer: None,
             query_answer: None,
+            query_answer_file: None,
             query_name: None
         }
     }
