@@ -30,8 +30,7 @@ pub enum MenuAction {
     Quit,
 }
 
-#[tokio::main]
-async fn main() {
+fn main() {
     let mut current_lesson = 0;
     let max_lessons = std::fs::read_dir("lesson_answers")
         .map(|entries| entries.count())
@@ -43,11 +42,13 @@ async fn main() {
     } else {
         welcome_screen();
     }
+    let rt = tokio::runtime::Runtime::new().expect("Failed to create tokio runtime");
+
     loop {
         let command = get_user_input();
         let action = parse_command(&command, current_lesson);
         match action {
-            Ok(action) => match handle_action(action, current_lesson, max_lessons).await {
+            Ok(action) => match rt.block_on(handle_action(action, current_lesson, max_lessons)) {
                 ActionResult::Continue => {
                     display_lesson(current_lesson);
                 }
