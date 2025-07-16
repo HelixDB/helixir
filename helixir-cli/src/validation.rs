@@ -748,16 +748,11 @@ pub fn get_latest_entity_id(entity_type: &str) -> Option<String> {
 }
 
 pub fn get_or_prompt_instance_id() -> Result<String, String> {
-    let instance_file = "helixdb-cfg/instance.txt";
-
-    if let Ok(instance_id) = std::fs::read_to_string(instance_file) {
-        let instance_id = instance_id.trim().to_string();
-
-        let mut instance_data = load_instance_data();
-        instance_data["instance_id"] = json!(instance_id.clone());
-        let _ = save_instance_data(&instance_data);
-
-        return Ok(instance_id);
+    let instance_data = load_instance_data();
+    if let Some(instance_id) = instance_data["instance_id"].as_str() {
+        if !instance_id.is_empty() {
+            return Ok(instance_id.to_string());
+        }
     }
 
     println!("First time running queries! We need your HelixDB instance ID.");
@@ -769,9 +764,6 @@ pub fn get_or_prompt_instance_id() -> Result<String, String> {
         .read_line(&mut input)
         .map_err(|e| format!("Failed to read input: {}", e))?;
     let instance_id = input.trim().to_string();
-
-    std::fs::write(instance_file, &instance_id)
-        .map_err(|e| format!("Failed to save instance ID: {}", e))?;
 
     let mut instance_data = load_instance_data();
     instance_data["instance_id"] = json!(instance_id.clone());
