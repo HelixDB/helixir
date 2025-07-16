@@ -11,7 +11,6 @@ mod cli;
 mod lesson_types;
 mod lessons;
 mod validation;
-
 use cli::*;
 use lessons::*;
 use validation::*;
@@ -199,7 +198,6 @@ async fn handle_action(
                                 for (index, query_test) in queries.iter().enumerate() {
                                     let query_name = query_test["query_name"].as_str().unwrap();
                                     let input = query_test["input"].clone();
-                                    let expected = query_test["expected_output"].clone();
 
                                     println!(
                                         "Testing query {} of {}: {}",
@@ -210,7 +208,7 @@ async fn handle_action(
                                     let query_instance: QueryValidator =
                                         self::QueryValidator::new();
                                     let comparison = query_instance
-                                        .execute_and_compare(query_name, input, expected)
+                                        .execute_and_compare(query_name, input)
                                         .await;
                                     match comparison {
                                         Ok((success, message)) => {
