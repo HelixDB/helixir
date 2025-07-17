@@ -309,6 +309,173 @@ impl QueryValidator {
                     |result| !result.city.id.is_empty() && !result.city.name.is_empty(),
                 ).await
             }
+            "getCapital" => {
+                let country_id = get_latest_entity_id("countries")
+                    .ok_or_else(|| anyhow::anyhow!("No country found. Please create a country first in previous lessons."))?;
+
+                let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+                input_obj["country_id"] = json!(country_id);
+
+                let input_de: GetCapitalInput = serde_json::from_value(input_obj)?;
+                
+                let db_result: GetCapitalResult = self.execute_query(query_name, &input_de).await?;
+
+                if !db_result.capital.is_empty() && 
+                   !db_result.capital[0].id.is_empty() && 
+                   !db_result.capital[0].name.is_empty() {
+                    let success_msg = format!(
+                        "Capital retrieved successfully!\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "Capital retrieval failed or returned empty data\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
+            "getAllContinents" => {
+                let db_result: GetAllContinentsResult = self.execute_query(query_name, &serde_json::json!({})).await?;
+                
+                if !db_result.continents.is_empty() {
+                    let success_msg = format!(
+                        "All continents retrieved successfully!\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "No continents found or query failed\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
+            "getAllCountries" => {
+                let db_result: GetAllCountriesResult = self.execute_query(query_name, &serde_json::json!({})).await?;
+                
+                if !db_result.countries.is_empty() {
+                    let success_msg = format!(
+                        "All countries retrieved successfully!\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "No countries found or query failed\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
+            "getAllCities" => {
+                let db_result: GetAllCitiesResult = self.execute_query(query_name, &serde_json::json!({})).await?;
+                
+                if !db_result.cities.is_empty() {
+                    let success_msg = format!(
+                        "All cities retrieved successfully!\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "No cities found or query failed\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
+            "getCountriesInContinent" => {
+                self.execute_get_query::<GetCountriesInContinentInput, GetCountriesInContinentResult>(
+                    query_name,
+                    EntityType::Continent,
+                    input,
+                    |result| !result.countries.is_empty(),
+                ).await
+            }
+            "getCitiesInCountry" => {
+                self.execute_get_query::<GetCitiesInCountryInput, GetCitiesInCountryResult>(
+                    query_name,
+                    EntityType::Country,
+                    input,
+                    |result| !result.cities.is_empty(),
+                ).await
+            }
+            "getCountryNames" => {
+                let db_result: GetCountryNamesResult = self.execute_query(query_name, &serde_json::json!({})).await?;
+                
+                if !db_result.countries.is_empty() && 
+                   !db_result.countries[0].name.is_empty() && 
+                   !db_result.countries[0].population.is_empty() {
+                    let success_msg = format!(
+                        "Country names retrieved successfully!\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "No countries found or query failed\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
+            "getContinentByName" => {
+                let input_de: GetContinentByNameInput = serde_json::from_value(input)?;
+                let db_result: GetContinentByNameResult = self.execute_query(query_name, &input_de).await?;
+                
+                if !db_result.continent.is_empty() && !db_result.continent[0].id.is_empty() {
+                    let success_msg = format!(
+                        "Continent retrieved by name successfully!\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "No continent found with that name\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
+            "getCountryByName" => {
+                let input_de: GetCountryByNameInput = serde_json::from_value(input)?;
+                let db_result: GetCountryByNameResult = self.execute_query(query_name, &input_de).await?;
+                
+                if !db_result.country.is_empty() && !db_result.country[0].id.is_empty() {
+                    let success_msg = format!(
+                        "Country retrieved by name successfully!\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "No country found with that name\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
+            "getCityByName" => {
+                let input_de: GetCityByNameInput = serde_json::from_value(input)?;
+                let db_result: GetCityByNameResult = self.execute_query(query_name, &input_de).await?;
+                
+                if !db_result.city.is_empty() && !db_result.city[0].id.is_empty() {
+                    let success_msg = format!(
+                        "City retrieved by name successfully!\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "No city found with that name\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
             _ => Ok((
                 false,
                 format!(

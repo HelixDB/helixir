@@ -1,0 +1,110 @@
+{
+    "queries": [
+        {
+            "query_name": "getAllContinents",
+            "input": {},
+            "expected_output": {
+                "continents": [
+                    {
+                        "id": "europe_continent_id",
+                        "name": "Europe"
+                    }
+                ]
+            }
+        },
+        {
+            "query_name": "getAllCountries",
+            "input": {},
+            "expected_output": {
+                "countries": [
+                    {
+                        "id": "uk_country_id",
+                        "name": "United Kingdom",
+                        "currency": "GBP",
+                        "population": 67500000,
+                        "gdp": 3131.0
+                    },
+                    {
+                        "id": "germany_country_id",
+                        "name": "Germany",
+                        "currency": "EUR",
+                        "population": 83200000,
+                        "gdp": 4259.0
+                    }
+                ]
+            }
+        },
+        {
+            "query_name": "getAllCities",
+            "input": {},
+            "expected_output": {
+                "cities": [
+                    {
+                        "id": "london_city_id",
+                        "name": "London",
+                        "description": "Capital of United Kingdom"
+                    },
+                    {
+                        "id": "berlin_city_id",
+                        "name": "Berlin",
+                        "description": "Capital of Germany"
+                    },
+                    {
+                        "id": "manchester_city_id",
+                        "name": "Manchester",
+                        "description": "Major city in United Kingdom"
+                    },
+                    {
+                        "id": "hamburg_city_id",
+                        "name": "Hamburg",
+                        "description": "Major port city in Germany"
+                    }
+                ]
+            }
+        },
+        {
+            "query_name": "getCountriesInContinent",
+            "input": {
+                "continent_id": "europe_continent_id"
+            },
+            "expected_output": {
+                "countries": [
+                    {
+                        "id": "uk_country_id",
+                        "name": "United Kingdom",
+                        "currency": "GBP",
+                        "population": 67500000,
+                        "gdp": 3131.0
+                    },
+                    {
+                        "id": "germany_country_id",
+                        "name": "Germany",
+                        "currency": "EUR",
+                        "population": 83200000,
+                        "gdp": 4259.0
+                    }
+                ]
+            }
+        },
+        {
+            "query_name": "getCitiesInCountry",
+            "input": {
+                "country_id": "uk_country_id"
+            },
+            "expected_output": {
+                "cities": [
+                    {
+                        "id": "london_city_id",
+                        "name": "London",
+                        "description": "Capital of United Kingdom"
+                    },
+                    {
+                        "id": "manchester_city_id",
+                        "name": "Manchester",
+                        "description": "Major city in United Kingdom"
+                    }
+                ]
+            }
+        }
+    ]
+}

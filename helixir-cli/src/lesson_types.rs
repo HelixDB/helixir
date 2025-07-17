@@ -147,3 +147,97 @@ pub struct GetCityResult {
     pub city: CityData,
 }
 
+// get all by node
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetAllContinentsResult {
+    pub continents: Vec<ContinentData>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetAllCountriesResult {
+    pub countries: Vec<CountryData>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetAllCitiesResult {
+    pub cities: Vec<CityData>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountriesInContinentInput {
+    pub continent_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountriesInContinentResult {
+    pub countries: Vec<CountryData>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCitiesInCountryInput {
+    pub country_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCitiesInCountryResult {
+    pub cities: Vec<CityData>,
+}
+
+// get capital city lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCapitalInput {
+    pub country_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCapitalResult {
+    pub capital: Vec<CityData>,
+}
+
+// get country names lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CountryNameData {
+    pub name: Vec<String>,
+    pub population: Vec<u64>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountryNamesResult {
+    pub countries: Vec<CountryNameData>,
+}
+
+// get nodes by name lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetContinentByNameInput {
+    pub continent_name: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetContinentByNameResult {
+    pub continent: Vec<ContinentData>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountryByNameInput {
+    pub country_name: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountryByNameResult {
+    pub country: Vec<CountryData>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCityByNameInput {
+    pub city_name: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCityByNameResult {
+    pub city: Vec<CityData>,
+}
+

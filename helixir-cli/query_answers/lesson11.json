@@ -1,0 +1,19 @@
+{
+    "queries": [
+        {
+            "query_name": "getCapital",
+            "input": {
+                "country_id": "uk_country_id"
+            },
+            "expected_output": {
+                "capital": [
+                    {
+                        "id": "london_city_id",
+                        "name": "London",
+                        "description": "Capital of United Kingdom"
+                    }
+                ]
+            }
+        }
+    ]
+}
