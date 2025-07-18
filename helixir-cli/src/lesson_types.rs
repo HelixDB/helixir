@@ -317,3 +317,10 @@ pub struct GetContinentCitiesResult {
     pub cities: Vec<CityData>,
 }
 
+// count capitals lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CountCapitalsResult {
+    pub num_capital: u64,
+}
+

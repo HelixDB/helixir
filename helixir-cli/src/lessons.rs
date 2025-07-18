@@ -178,8 +178,8 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
             title: "Get Nodes by Many Properties".into(),
             instructions: "Now that we've seen how to get nodes by individual properties, we can also combine multiple conditions to perform more advanced filtering. For this example, we'll write queries that retrieve Country nodes based on a combination of property values. This includes filtering countries with a population greater than a minimum and a GDP less than or equal to a maximum, as well as retrieving countries that either use a specific currency or have a population below a certain threshold. These types of queries allow us to refine our searches and extract more targeted subsets of data from our graph.\n\nWrite a query to find `Country` nodes with both population greater than `min_population` and GDP less than or equal to `max_gdp`.\n\nWrite a query to find `Country` nodes with either a specific `currency` or a population less than or equal to `max_population`.".into(),
             hints: vec![
-                "Add this header into your query.hx: QUERY getCountriesByPopGdp (min_population: U64, max_gdp: F64) =>".into(),
-                "Add this header into your query.hx: QUERY getCountriesByCurrPop (currency: String, max_population: U64) =>".into(),
+                "Add this header into your query.hx: QUERY getCountriesByPopGdp (min_population: I64, max_gdp: F64) =>".into(),
+                "Add this header into your query.hx: QUERY getCountriesByCurrPop (currency: String, max_population: I64) =>".into(),
                 "Use AND() for combining conditions with logical AND: AND(_::{population}::GT(min_population), _::{gdp}::LTE(max_gdp))".into(),
                 "Use OR() for combining conditions with logical OR: OR(_::{currency}::EQ(currency), _::{population}::LTE(max_population))".into()
             ],
@@ -214,6 +214,20 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
             query_answer: Some("query_answers/lesson17.json".into()),
             query_answer_file: Some("lesson_answers/lesson17_queries.hx".into()),
             query_name: Some(vec!["getContinentCities".into()]),
+        },
+        18 => Lesson {
+            id: 18,
+            title: "Get Count of Nodes".into(),
+            instructions: "In some cases, we want to gather basic statistics about our graph. For example, we can count the number of capital cities by checking how many City nodes have an incoming Country_to_Capital edge. Using the COUNT operation, we can quickly compute aggregate statistics like this to better understand the structure and distribution of data across our graph.\n\nWrite a query to get the number of capital cities.".into(),
+            hints: vec![
+                "Add this header into your query.hx: QUERY countCapitals () =>".into(),
+                "Use WHERE with EXISTS to find cities that are capitals: WHERE(EXISTS(_::In<Country_to_Capital>))".into(),
+                "Use COUNT operation to count the matching nodes: ::COUNT".into()
+            ],
+            schema_answer: Some("lesson_answers/lesson4_schema.hx".into()),
+            query_answer: Some("query_answers/lesson18.json".into()),
+            query_answer_file: Some("lesson_answers/lesson18_queries.hx".into()),
+            query_name: Some(vec!["countCapitals".into()]),
         },
         _ => Lesson {
             id: lesson_id,

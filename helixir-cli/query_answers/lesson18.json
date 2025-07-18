@@ -1,0 +1,11 @@
+{
+    "queries": [
+        {
+            "query_name": "countCapitals",
+            "input": {},
+            "expected_output": {
+                "num_capital": 5
+            }
+        }
+    ]
+}

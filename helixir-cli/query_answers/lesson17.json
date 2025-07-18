@@ -14,13 +14,13 @@
                         "description": "Capital city of the United Kingdom"
                     },
                     {
-                        "id": "manchester_city_id", 
+                        "id": "manchester_city_id",
                         "name": "Manchester",
                         "description": "Major city in the north of England"
                     },
                     {
                         "id": "berlin_city_id",
-                        "name": "Berlin", 
+                        "name": "Berlin",
                         "description": "Capital city of Germany"
                     }
                 ]

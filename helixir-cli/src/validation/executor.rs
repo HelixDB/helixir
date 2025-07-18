@@ -593,6 +593,36 @@ impl QueryValidator {
                     Ok((false, error_msg))
                 }
             }
+            "countCapitals" => {
+                match self.client.query::<serde_json::Value, serde_json::Value>(query_name, &serde_json::json!({})).await {
+                    Ok(raw_response) => {
+                        println!("{}", serde_json::to_string_pretty(&raw_response).unwrap_or_default());
+                        
+                        let success_msg = format!(
+                            "Raw HelixDB response printed above. Check format and update lesson_types.rs accordingly."
+                        );
+                        Ok((true, success_msg))
+                    },
+                    Err(e) => Ok((false, format!("Query failed: {}", e)))
+                }
+            }
+            "getCountriesWithCapitals" => {
+                let db_result: GetCountriesWithCapitalsResult = self.execute_query(query_name, &serde_json::json!({})).await?;
+                
+                if !db_result.countries.is_empty() {
+                    let success_msg = format!(
+                        "Countries with capitals retrieved successfully!\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "No countries with capitals found or query failed\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
             _ => Ok((
                 false,
                 format!(

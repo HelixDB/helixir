@@ -121,6 +121,6 @@ QUERY getContinentCities (continent_name: String, k: I64) =>
     cities <- countries::Out<Country_to_City>::RANGE(0, 5)
     RETURN cities
 
-QUERY countCapital () =>
+QUERY countCapitals () =>
     num_capital <- N<City>::WHERE(EXISTS(_::In<Country_to_Capital>))::COUNT
     RETURN num_capital

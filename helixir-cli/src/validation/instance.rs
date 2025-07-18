@@ -88,11 +88,12 @@ pub fn get_or_prompt_instance_id() -> Result<String, String> {
 }
 
 pub fn redeploy_instance(instance_id: &str) -> bool {
-    println!("Running: helix redeploy --cluster {}", instance_id);
+    // println!("Running: helix redeploy --cluster {}", instance_id);
+
     let output = Command::new("helix")
-        .arg("redeploy")
-        .arg("--cluster")
-        .arg(instance_id)
+        .arg("compile")
+        // .arg("--cluster")
+        // .arg(instance_id)
         .output();
 
     match output {
