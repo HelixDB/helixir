@@ -1,7 +1,10 @@
-use std::{fs, process::Command};
-use crate::ui::{display_lesson, get_user_input, welcome_screen, clear_screen};
-use crate::validation::{check_helix_init, ParsedQueries, ParsedSchema, QueryValidator, get_or_prompt_instance_id, redeploy_instance};
 use crate::lessons::get_lesson;
+use crate::ui::{clear_screen, display_lesson, get_user_input, welcome_screen};
+use crate::validation::{
+    ParsedQueries, ParsedSchema, QueryValidator, check_helix_init, get_or_prompt_instance_id,
+    redeploy_instance,
+};
+use std::{fs, process::Command};
 
 pub enum ActionResult {
     Continue,
@@ -28,25 +31,25 @@ impl App {
         let max_lessons = std::fs::read_dir("lesson_answers")
             .map(|entries| entries.count())
             .unwrap_or(0);
-        
+
         let runtime = tokio::runtime::Runtime::new().expect("Failed to create tokio runtime");
-        
+
         Self {
             current_lesson: 0,
             max_lessons,
             runtime,
         }
     }
-    
+
     pub fn initialize(&mut self) {
         if check_helix_init() {
-            self.current_lesson = 18;
+            self.current_lesson = 22;
             display_lesson(self.current_lesson);
         } else {
             welcome_screen();
         }
     }
-    
+
     pub fn run(&mut self) {
         self.initialize();
         loop {
@@ -70,7 +73,7 @@ impl App {
             }
         }
     }
-    
+
     fn parse_command(&self, input: &str) -> Result<MenuAction, String> {
         let trimmed = input.trim();
 
@@ -100,7 +103,7 @@ impl App {
             }
         }
     }
-    
+
     async fn handle_action(&self, action: MenuAction) -> ActionResult {
         match action {
             MenuAction::Back => {
@@ -172,7 +175,8 @@ impl App {
                                 Ok(output) if output.status.success() => {
                                     println!("Helix check passed");
 
-                                    let lesson_data = fs::read_to_string(query_answer_path).unwrap();
+                                    let lesson_data =
+                                        fs::read_to_string(query_answer_path).unwrap();
                                     let lesson_json: serde_json::Value =
                                         serde_json::from_str(&lesson_data).unwrap();
 
@@ -187,8 +191,7 @@ impl App {
                                             queries.len(),
                                             query_name
                                         );
-                                        let query_instance: QueryValidator =
-                                            QueryValidator::new();
+                                        let query_instance: QueryValidator = QueryValidator::new();
                                         let comparison = query_instance
                                             .execute_and_compare(query_name, input)
                                             .await;
@@ -201,7 +204,9 @@ impl App {
                                             }
                                             Err(e) => {
                                                 let error_msg = e.to_string();
-                                                if error_msg.contains("error decoding response body") {
+                                                if error_msg
+                                                    .contains("error decoding response body")
+                                                {
                                                     println!(
                                                         "Deserialization error in query {}: {}",
                                                         query_name, error_msg
@@ -278,7 +283,9 @@ impl App {
                                                 expected_from, user_from
                                             );
                                         }
-                                        if let Some((user_to, expected_to)) = &errors.to_type_mismatch {
+                                        if let Some((user_to, expected_to)) =
+                                            &errors.to_type_mismatch
+                                        {
                                             println!(
                                                 "To type mismatch: expected '{}', got '{}'",
                                                 expected_to, user_to

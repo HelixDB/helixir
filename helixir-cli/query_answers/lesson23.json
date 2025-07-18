@@ -1,0 +1,19 @@
+{
+    "queries": [
+        {
+            "query_name": "updateDescription",
+            "input": {
+                "city_id": "ID",
+                "description": "String",
+                "vector": [1.0, 2.0, 3.0]
+            },
+            "expected_output": {
+                "city": {
+                    "id": "ID",
+                    "name": "String", 
+                    "description": "String"
+                }
+            }
+        }
+    ]
+}

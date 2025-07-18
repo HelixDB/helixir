@@ -1,0 +1,18 @@
+{
+    "queries": [
+        {
+            "query_name": "updateCapital",
+            "input": {
+                "country_id": "ID",
+                "city_id": "ID"
+            },
+            "expected_output": {
+                "city": {
+                    "id": "ID",
+                    "name": "String",
+                    "description": "String"
+                }
+            }
+        }
+    ]
+}

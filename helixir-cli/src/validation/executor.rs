@@ -623,6 +623,252 @@ impl QueryValidator {
                     Ok((false, error_msg))
                 }
             }
+            "getCountryByCityCnt" => {
+                let input_de: GetCountryByCityCntInput = serde_json::from_value(input)?;
+                
+                match self.client.query::<GetCountryByCityCntInput, serde_json::Value>(query_name, &input_de).await {
+                    Ok(raw_response) => {
+                        println!("{}", serde_json::to_string_pretty(&raw_response).unwrap_or_default());
+                        
+                        let success_msg = format!(
+                            "Raw HelixDB response printed above. Check format and update lesson_types.rs accordingly."
+                        );
+                        Ok((true, success_msg))
+                    },
+                    Err(e) => Ok((false, format!("Query failed: {}", e)))
+                }
+            }
+            "searchDescriptions" => {
+                let input_de: SearchDescriptionsInput = serde_json::from_value(input)?;
+                let db_result: SearchDescriptionsResult = self.execute_query(query_name, &input_de).await?;
+                
+                if !db_result.cities.is_empty() {
+                    let success_msg = format!(
+                        "Semantic search completed successfully!\nDatabase result:\n{}\nFound {} semantically similar cities for the search vector.",
+                        serde_json::to_string_pretty(&db_result)?,
+                        db_result.cities.len()
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "No cities found for semantic search\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
+            "updateCurrency" => {
+                let country_id = get_latest_entity_id("countries").ok_or_else(|| {
+                    anyhow::anyhow!("No country found. Please create a country first in previous lessons.")
+                })?;
+
+                let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+                input_obj["country_id"] = json!(country_id);
+
+                let input_de: UpdateCurrencyInput = serde_json::from_value(input_obj)?;
+                let db_result: UpdateCurrencyResult = self.execute_query("updateCurrency", &input_de).await?;
+
+                let currency_matches = db_result.country.currency == input_de.currency 
+                    && db_result.country.id == country_id;
+
+                if currency_matches {
+                    let success_msg = format!(
+                        "Country currency updated successfully!\nDatabase result:\n{}\nCountry '{}' currency updated to '{}'.",
+                        serde_json::to_string_pretty(&db_result)?,
+                        country_id,
+                        input_de.currency
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "Currency update mismatch\nExpected: currency='{}'\nGot: currency='{}'\nDatabase result:\n{}",
+                        input_de.currency,
+                        db_result.country.currency,
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
+            "updatePopGdp" => {
+                let country_id = get_latest_entity_id("countries").ok_or_else(|| {
+                    anyhow::anyhow!("No country found. Please create a country first in previous lessons.")
+                })?;
+
+                let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+                input_obj["country_id"] = json!(country_id);
+
+                let input_de: UpdatePopGdpInput = serde_json::from_value(input_obj)?;
+                let db_result: UpdatePopGdpResult = self.execute_query("updatePopGdp", &input_de).await?;
+
+                let values_match = db_result.country.population == input_de.population 
+                    && db_result.country.gdp == input_de.gdp
+                    && db_result.country.id == country_id;
+
+                if values_match {
+                    let success_msg = format!(
+                        "Country population and GDP updated successfully!\nDatabase result:\n{}\nCountry '{}' population updated to {} and GDP updated to {}.",
+                        serde_json::to_string_pretty(&db_result)?,
+                        country_id,
+                        input_de.population,
+                        input_de.gdp
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "Population/GDP update mismatch\nExpected: population={}, gdp={}\nGot: population={}, gdp={}\nDatabase result:\n{}",
+                        input_de.population,
+                        input_de.gdp,
+                        db_result.country.population,
+                        db_result.country.gdp,
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
+            "updateCapital" => {
+                let country_id = get_latest_entity_id("countries").ok_or_else(|| {
+                    anyhow::anyhow!("No country found. Please create a country first in previous lessons.")
+                })?;
+                let city_id = get_latest_entity_id("cities").ok_or_else(|| {
+                    anyhow::anyhow!("No city found. Please create a city first in previous lessons.")
+                })?;
+
+                let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+                input_obj["country_id"] = json!(country_id);
+                input_obj["city_id"] = json!(city_id);
+
+                let input_de: UpdateCapitalInput = serde_json::from_value(input_obj)?;
+                let db_result: UpdateCapitalResult = self.execute_query("updateCapital", &input_de).await?;
+
+                let capital_updated = db_result.city.id == city_id;
+                if capital_updated {
+                    let success_msg = format!(
+                        "Capital relationship updated successfully!\nDatabase result:\n{}\nCountry '{}' now has '{}' as its capital city.",
+                        serde_json::to_string_pretty(&db_result)?,
+                        country_id,
+                        city_id
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "Capital update mismatch\nExpected city ID: '{}'\nGot city ID: '{}'\nDatabase result:\n{}",
+                        city_id,
+                        db_result.city.id,
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
+            "updateDescription" => {
+                let city_id = get_latest_entity_id("cities").ok_or_else(|| {
+                    anyhow::anyhow!("No city found. Please create a city first in previous lessons.")
+                })?;
+
+                let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+                input_obj["city_id"] = json!(city_id);
+
+                let input_de: UpdateDescriptionInput = serde_json::from_value(input_obj)?;
+                let db_result: UpdateDescriptionResult = self.execute_query("updateDescription", &input_de).await?;
+
+                let description_updated = db_result.city.description == input_de.description 
+                    && db_result.city.id == city_id;
+
+                if description_updated {
+                    let success_msg = format!(
+                        "Description and embedding updated successfully!\nDatabase result:\n{}\nCity '{}' description updated to '{}' with new vector embedding.",
+                        serde_json::to_string_pretty(&db_result)?,
+                        city_id,
+                        input_de.description
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "Description update mismatch\nExpected description: '{}'\nGot description: '{}'\nDatabase result:\n{}",
+                        input_de.description,
+                        db_result.city.description,
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
+            "deleteCity" => {
+                let city_id = get_latest_entity_id("cities").ok_or_else(|| {
+                    anyhow::anyhow!("No city found. Please create a city first in previous lessons.")
+                })?;
+
+                let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+                input_obj["city_id"] = json!(city_id);
+
+                let input_de: DeleteCityInput = serde_json::from_value(input_obj)?;
+                let db_result: DeleteCityResult = self.execute_query("deleteCity", &input_de).await?;
+
+                if db_result.result == "success" {
+                    let success_msg = format!(
+                        "City deleted successfully!\nDatabase result:\n{}\nCity '{}' has been removed from the graph.",
+                        serde_json::to_string_pretty(&db_result)?,
+                        city_id
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "City deletion failed\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
+            "deleteCapital" => {
+                let country_id = get_latest_entity_id("countries").ok_or_else(|| {
+                    anyhow::anyhow!("No country found. Please create a country first in previous lessons.")
+                })?;
+
+                let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+                input_obj["country_id"] = json!(country_id);
+
+                let input_de: DeleteCapitalInput = serde_json::from_value(input_obj)?;
+                let db_result: DeleteCapitalResult = self.execute_query("deleteCapital", &input_de).await?;
+
+                if db_result.result == "success" {
+                    let success_msg = format!(
+                        "Capital relationship deleted successfully!\nDatabase result:\n{}\nCountry '{}' no longer has a capital city relationship.",
+                        serde_json::to_string_pretty(&db_result)?,
+                        country_id
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "Capital deletion failed\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
+            "deleteCountry" => {
+                let country_id = get_latest_entity_id("countries").ok_or_else(|| {
+                    anyhow::anyhow!("No country found. Please create a country first in previous lessons.")
+                })?;
+
+                let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+                input_obj["country_id"] = json!(country_id);
+
+                let input_de: DeleteCountryInput = serde_json::from_value(input_obj)?;
+                let db_result: DeleteCountryResult = self.execute_query("deleteCountry", &input_de).await?;
+
+                if db_result.result == "success" {
+                    let success_msg = format!(
+                        "Country deleted successfully!\nDatabase result:\n{}\nCountry '{}' has been removed from the graph.",
+                        serde_json::to_string_pretty(&db_result)?,
+                        country_id
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "Country deletion failed\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
             _ => Ok((
                 false,
                 format!(

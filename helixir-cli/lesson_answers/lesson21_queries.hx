@@ -81,7 +81,6 @@ QUERY getCityByName (city_name: String) =>
     city <- N<City>::WHERE(_::{name}::EQ(city_name))
     RETURN city
 
-
 QUERY getCountriesByCurrency (currency: String) =>
     countries <- N<Country>::WHERE(_::{currency}::EQ(currency))
     RETURN countries
@@ -106,8 +105,40 @@ QUERY getCountriesByPopGdp (min_population: I64, max_gdp: F64) =>
 QUERY getCountriesByCurrPop (currency: String, max_population: I64) =>
     countries <- N<Country>::WHERE(
                     OR(
-                        _::{currency}::EQ(currency),
-                        _::{population}::LTE(max_population)
+                            _::{currency}::EQ(currency),
+                            _::{population}::LTE(max_population)
                     )
             )
     RETURN countries
+
+// QUERY getCountriesWithCapitals () =>
+//     countries <- N<Country>::WHERE(EXISTS(_::Out<Country_to_Capital>))
+//     RETURN countries
+
+// QUERY getContinentCities (continent_name: String, k: I64) =>
+//     continent <- N<Continent>::WHERE(_::{name}::EQ(continent_name))
+//     countries <- continent::Out<Continent_to_Country>
+//     cities <- countries::Out<Country_to_City>::RANGE(0, 5)
+//     RETURN cities
+
+// QUERY countCapitals () =>
+//     num_capital <- N<City>::WHERE(EXISTS(_::In<Country_to_Capital>))::COUNT
+//     RETURN num_capital
+
+
+// QUERY getCountryByCityCnt (num_cities: I64)
+//     countries <- N<Country>::WHERE(_::Out<Country_to_City>::COUNT::GT(num_cities))
+//     RETURN countries
+
+QUERY searchDescriptions (vector: [F64], k: I64) =>
+    descriptions <- SearchV<CityDescription>(vector, k)
+    cities <- descriptions::In<City_to_Embedding>
+    RETURN cities
+
+QUERY updateCurrency (country_id: ID, currency: String) =>
+    country <- N<Country>(country_id)::UPDATE({currency: currency})
+    RETURN country
+    
+QUERY updatePopGdp (country_id: ID, population: I64, gdp: F64) =>
+    country <- N<Country>(country_id)::UPDATE({population: population, gdp: gdp})
+    RETURN country

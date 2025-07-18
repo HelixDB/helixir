@@ -229,6 +229,96 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
             query_answer_file: Some("lesson_answers/lesson18_queries.hx".into()),
             query_name: Some(vec!["countCapitals".into()]),
         },
+        19 => Lesson {
+            id: 19,
+            title: "Get Nodes with Anonymous Traversals".into(),
+            instructions: "Sometimes we want to filter nodes based on other node's properties. For example, we can get all countries that have more than a certain number of cities. To do this, we'll count the number of outgoing Country_to_City edges from each Country node and filter by num_cities. This pattern of anonymous traversal is useful when we care about the structure or degree of connectivity in the graph, rather than the specific linked nodes themselves.\n\nWrite a query to get Country nodes that has more cities than num_cities.".into(),
+            hints: vec![
+                "Add this header into your query.hx: QUERY getCountryByCityCnt (num_cities: 164) =>".into(),
+                "Use WHERE with anonymous traversal: WHERE(_::Out<Country_to_City>::COUNT()>$(num_cities))".into(),
+                "Anonymous traversal syntax: _:: means we don't care about the target nodes, just the count".into()
+            ],
+            schema_answer: Some("lesson_answers/lesson4_schema.hx".into()),
+            query_answer: Some("query_answers/lesson19.json".into()),
+            query_answer_file: Some("lesson_answers/lesson19_queries.hx".into()),
+            query_name: Some(vec!["getCountryByCityCnt".into()]),
+        },
+        20 => Lesson {
+            id: 20,
+            title: "Semantic Search Vectors".into(),
+            instructions: "Semantic search allows us to go beyond exact matches by comparing the meaning of data. For example, we can find cities with similar descriptions using vector embeddings. By searching against CityDescription vectors, we can retrieve the top-k most semantically similar City nodes to a given input vector. This is especially useful when we want to find cities that share common characteristics or themes, even if their properties don't match exactly.\n\nFor this lesson, we're using fake embeddings to test the semantic search functionality. In a real application, you would use proper embeddings from models like OpenAI or other embedding providers.\n\nWrite a query to semantically search a vector against CityDescription vectors and returning the top k City nodes.".into(),
+            hints: vec![
+                "Add this header into your query.hx: QUERY searchDescriptions (vector: [F64], k: I64) =>".into(),
+                "Use SearchV<CityDescription>(vector, k) to perform semantic search".into(),
+                "Connect search results to City nodes using traversal: descriptions<-CityDescription to Embedding->city".into()
+            ],
+            schema_answer: Some("lesson_answers/lesson4_schema.hx".into()),
+            query_answer: Some("query_answers/lesson20.json".into()),
+            query_answer_file: Some("lesson_answers/lesson20_queries.hx".into()),
+            query_name: Some(vec!["searchDescriptions".into()]),
+        },
+        21 => Lesson {
+            id: 21,
+            title: "Updating Nodes".into(),
+            instructions: "Updating nodes allows us to modify the properties of existing entities in our graph without needing to recreate them. To update a node, we use the UPDATE operation followed by the fields we want to modify. For example, we can update a country's currency by its ID, or simultaneously update both its population and GDP. Keeping node data up-to-date ensures our graph remains accurate and relevant for queries, visualizations, and downstream analytics.\n\nWrite a query to update a country's currency by a country's ID.\n\nWrite a query to update a country's population and gdp by a country's ID.".into(),
+            hints: vec![
+                "Add this header into your query.hx: QUERY updateCurrency (country_id: ID, currency: String) =>".into(),
+                "Add this header into your query.hx: QUERY updatePopGdp (country_id: ID, population: I64, gdp: F64) =>".into(),
+                "Use UPDATE operation: country <- N<Country>(country_id)::UPDATE({currency: currency})".into(),
+                "For multiple fields: country <- N<Country>(country_id)::UPDATE({population: population, gdp: gdp})".into()
+            ],
+            schema_answer: Some("lesson_answers/lesson4_schema.hx".into()),
+            query_answer: Some("query_answers/lesson21.json".into()),
+            query_answer_file: Some("lesson_answers/lesson21_queries.hx".into()),
+            query_name: Some(vec!["updateCurrency".into(), "updatePopGdp".into()]),
+        },
+        22 => Lesson {
+            id: 22,
+            title: "Updating Meta Relationships".into(),
+            instructions: "Sometimes we need to update the meta relationships between nodes rather than creating new ones. For example, we might want to change which city serves as a country's capital. This involves removing the existing capital relationship and creating a new one with a different city. When updating meta relationships, it's important to properly manage the edge connections to maintain graph consistency.\n\nWrite a query to update the capital City node of a Country node given the country's ID and the new capital city's ID.".into(),
+            hints: vec![
+                "Add this header into your query.hx: QUERY updateCapital (country_id: ID, city_id: ID) =>".into(),
+                "First DROP the existing capital edge: DROP N<Country>(country_id)::OutE<Country_to_Capital>".into(),
+                "Then get the country and city nodes to create new relationship".into(),
+                "Use AddE<Country_to_Capital> to create the new capital relationship".into()
+            ],
+            schema_answer: Some("lesson_answers/lesson4_schema.hx".into()),
+            query_answer: Some("query_answers/lesson22.json".into()),
+            query_answer_file: Some("lesson_answers/lesson22_queries.hx".into()),
+            query_name: Some(vec!["updateCapital".into()]),
+        },
+        23 => Lesson {
+            id: 23,
+            title: "Updating Embeddings".into(),
+            instructions: "When working with vector embeddings, we often need to update both the node properties and their associated vector embeddings. For example, when a city's description changes, we need to update the description property and also update the corresponding vector embedding to reflect the new semantic meaning. This ensures that semantic searches remain accurate and relevant.\n\nWrite a query to update the description of a City node given its ID and also update the CityDescription vector embedding given a new vector.".into(),
+            hints: vec![
+                "Add this header into your query.hx: QUERY updateDescription (city_id: ID, description: String, vector: [F64]) =>".into(),
+                "First DROP the existing embedding: DROP N<City>(city_id)::OutE<City_to_Embedding>".into(),
+                "Update the city description using UPDATE operation".into(),
+                "Add new vector embedding with AddV<CityDescription>(vector)".into()
+            ],
+            schema_answer: Some("lesson_answers/lesson4_schema.hx".into()),
+            query_answer: Some("query_answers/lesson23.json".into()),
+            query_answer_file: Some("lesson_answers/lesson23_queries.hx".into()),
+            query_name: Some(vec!["updateDescription".into()]),
+        },
+        24 => Lesson {
+            id: 24,
+            title: "Deleting Nodes".into(),
+            instructions: "Deleting nodes is useful when we want to clean up outdated or incorrect data from our graph. However, this can get tricky in a graph database because not only do you have to drop the node but also the relationships connected to that node. Additionally, the order in which you drop them is very important. For example, if a city is no longer relevant or a country needs to be removed entirely, we can drop the node and its relationship to the country as a city and also potentially as a capital city. In cases where the node is linked through specific edges, like a capital city connection, it's important to remove those edges first to maintain the graph structure and allowing us to drop the other edges later. This ensures that dependent edges don't linger in the system, avoiding potential inconsistencies during traversal or analytics.\n\nWrite a query to delete a City node given its ID.\n\nWrite a query to delete a capital City node given its country's ID.".into(),
+            hints: vec![
+                "Add this header into your query.hx: QUERY deleteCity (city_id: ID) =>".into(),
+                "Add this header into your query.hx: QUERY deleteCapital (country_id: ID) =>".into(),
+                "Add this header into your query.hx: QUERY deleteCountry (country_id: ID) =>".into(),
+                "Use DROP operation: DROP N<City>(city_id)".into(),
+                "For capital deletion: DROP N<Country>(country_id)::Out<Country_to_Capital>".into(),
+                "For country deletion: DROP N<Country>(country_id)".into()
+            ],
+            schema_answer: Some("lesson_answers/lesson4_schema.hx".into()),
+            query_answer: Some("query_answers/lesson24.json".into()),
+            query_answer_file: Some("lesson_answers/lesson24_queries.hx".into()),
+            query_name: Some(vec!["deleteCity".into(), "deleteCapital".into(), "deleteCountry".into()]),
+        },
         _ => Lesson {
             id: lesson_id,
             title: "Lesson Not Found".into(),

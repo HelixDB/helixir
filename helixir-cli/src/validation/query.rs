@@ -1,7 +1,9 @@
-use std::{collections::{HashMap, HashSet}, fs};
+use std::{
+    collections::{HashMap, HashSet},
+    fs,
+};
 
 use crate::validation::{ParsedQueries, ParsedQuery, QueryValidationResult};
-
 
 impl ParsedQueries {
     pub fn from_file(file_path: &str) -> Result<Self, String> {
@@ -18,6 +20,11 @@ impl ParsedQueries {
         while i < lines.len() {
             let line = lines[i].trim();
 
+            if line.is_empty() || line.starts_with("//") {
+                i += 1;
+                continue;
+            }
+
             if line.starts_with("QUERY ") {
                 if let Some(arrow_pos) = line.find(" =>") {
                     let query_def = &line[6..arrow_pos];
@@ -32,7 +39,7 @@ impl ParsedQueries {
 
                         while i < lines.len() {
                             let body_line = lines[i].trim();
-                            if body_line.is_empty() {
+                            if body_line.is_empty() || body_line.starts_with("//") {
                                 i += 1;
                                 continue;
                             }

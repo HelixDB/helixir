@@ -41,6 +41,7 @@ pub struct CountryData {
     pub currency: String,
     pub population: i64,
     pub gdp: f64,
+    pub label: String,
 }
 
 
@@ -322,5 +323,114 @@ pub struct GetContinentCitiesResult {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CountCapitalsResult {
     pub num_capital: u64,
+}
+
+// get countries by city count lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountryByCityCntInput {
+    pub num_cities: u64,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountryByCityCntResult {
+    pub countries: Vec<CountryData>,
+}
+
+// semantic search lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SearchDescriptionsInput {
+    pub vector: Vec<f64>,
+    pub k: u64,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SearchDescriptionsResult {
+    pub cities: Vec<CityData>,
+}
+
+// updating nodes lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdateCurrencyInput {
+    pub country_id: String,
+    pub currency: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdateCurrencyResult {
+    pub country: CountryData,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdatePopGdpInput {
+    pub country_id: String,
+    pub population: i64,
+    pub gdp: f64,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdatePopGdpResult {
+    pub country: CountryData,
+}
+
+// updating meta relationships lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdateCapitalInput {
+    pub country_id: String,
+    pub city_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdateCapitalResult {
+    pub city: CityData,
+}
+
+// updating embeddings lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdateDescriptionInput {
+    pub city_id: String,
+    pub description: String,
+    pub vector: Vec<f64>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdateDescriptionResult {
+    pub city: CityData,
+}
+
+// deleting nodes lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DeleteCityInput {
+    pub city_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DeleteCityResult {
+    pub result: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DeleteCapitalInput {
+    pub country_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DeleteCapitalResult {
+    pub result: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DeleteCountryInput {
+    pub country_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DeleteCountryResult {
+    pub result: String,
 }
 

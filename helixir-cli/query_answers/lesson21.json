@@ -1,0 +1,25 @@
+{
+    "queries": [
+        {
+            "query_name": "updateCurrency",
+            "input": {
+                "country_id": "ID",
+                "currency": "USD"
+            },
+            "expected_output": {
+                "country": "any"
+            }
+        },
+        {
+            "query_name": "updatePopGdp",
+            "input": {
+                "country_id": "ID",
+                "population": 500000000,
+                "gdp": 25000000000000.0
+            },
+            "expected_output": {
+                "country": "any"
+            }
+        }
+    ]
+}

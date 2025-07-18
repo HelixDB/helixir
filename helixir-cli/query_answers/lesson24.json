@@ -1,0 +1,25 @@
+{
+    "queries": [
+        {
+            "query_name": "deleteCity",
+            "input": {
+                "city_id": "ID"
+            },
+            "expected_output": "success"
+        },
+        {
+            "query_name": "deleteCapital",
+            "input": {
+                "country_id": "ID"
+            },
+            "expected_output": "success"
+        },
+        {
+            "query_name": "deleteCountry",
+            "input": {
+                "country_id": "ID"
+            },
+            "expected_output": "success"
+        }
+    ]
+}

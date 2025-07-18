@@ -39,8 +39,8 @@ pub fn save_created_entity(
     entity_data: &serde_json::Value,
 ) -> Result<(), String> {
     let mut instance_data = load_instance_data();
-    if instance_data["created_entities"][entity_type].is_array() {
-        instance_data["created_entities"][entity_type] = json!([entity_data]);
+    if let Some(entities_array) = instance_data["created_entities"][entity_type].as_array_mut() {
+        entities_array.push(entity_data.clone());
     } else {
         return Err(format!("Invalid entity type: {}", entity_type));
     }
