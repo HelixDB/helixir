@@ -254,13 +254,10 @@ impl ParsedSchema {
 
         ValidationResult {
             is_correct: missing_nodes.is_empty()
-                && extra_nodes.is_empty()
                 && property_errors.is_empty()
                 && missing_edges.is_empty()
-                && extra_edges.is_empty()
                 && edge_errors.is_empty()
                 && missing_vectors.is_empty()
-                && extra_vectors.is_empty()
                 && vector_errors.is_empty(),
             missing_nodes,
             extra_nodes,

@@ -9,6 +9,7 @@ pub struct Lesson {
     pub schema_answer: Option<String>,
     pub query_answer: Option<String>,
     pub query_answer_file: Option<String>,
+    #[allow(dead_code)]
     pub query_name: Option<Vec<String>>,
 }
 
@@ -27,7 +28,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
         1 => Lesson {
             id: 1,
             title: "Schema Design - Nodes".into(),
-            instructions: "We will be using HelixDB to model the relationships between continents, countries, and cities as a graph.\nFirst, we have to define what kind of entities/nodes will be in our graph.\nWe will start with 3 types of nodes: continents, countries, and cities.\nThe continent node will have a `name` property, which takes a `String`.\nThe country node will have a `name` property, a `currency` property, a `population` property (`U64`), and a `gdp` property (`F64`).\nThe city node will have a `name` property, a `description` property, and a `zip_codes` property that takes an array of strings.\n\nCreate a Continent , Country , and City node with their respective properties in schema.hx".into(),
+            instructions: "We will be using HelixDB to model the relationships between continents, countries, and cities as a graph.\n\nFirst, we have to define what kind of entities/nodes will be in our graph. We will start with 3 types of nodes: continents, countries, and cities.\n\n**Node Definitions:**\n- The **Continent** node will have a **name** property (String)\n- The **Country** node will have: **name** (String), **currency** (String), **population** (U64), and **gdp** (F64)\n- The **City** node will have: **name** (String), **description** (String), and **zip_codes** (array of strings)\n\nCreate a Continent, Country, and City node with their respective properties in **schema.hx**".into(),
             hints: vec!["Use N:: for nodes".into()],
             schema_answer: Some("lesson_answers/lesson1_schema.hx".into()),
             query_answer: None,
@@ -37,7 +38,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
         2 => Lesson {
             id: 2,
             title: "Adding in Edges".into(),
-            instructions: "Now that we know what type of nodes are in our schema, we will define the relationships between those nodes.\n For this example, there is a hierarchical pattern where a city is in a country and a country is in a continent.\n\nCreate a Continent_to_Country and Country_to_City edge connecting their respective nodes with no properties in schema.hx.".into(),
+            instructions: "Now that we know what type of nodes are in our schema, we will define the relationships between those nodes.\n\nFor this example, there is a hierarchical pattern:\n- A **city** is in a **country**\n- A **country** is in a **continent**\n\nCreate a Continent_to_Country and Country_to_City edge connecting their respective nodes with no properties in **schema.hx**".into(),
             hints: vec!["Use E:: for edges".into()],
             schema_answer: Some("lesson_answers/lesson2_schema.hx".into()),
             query_answer: None,
@@ -47,7 +48,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
         3 => Lesson {
             id: 3,
             title: "Meta Relationships".into(),
-            instructions: "In addition to the structural relationships between the nodes, you can also define relationships based on metadata. For example, a country must have a capital city.\n\nCreate a Country_to_Capital edge connecting Country to City in schema.hx".into(),
+            instructions: "In addition to the structural relationships between the nodes, you can also define relationships based on metadata. For example, a country must have a capital city.\n\nCreate a Country_to_Capital edge connecting Country to City in **schema.hx**".into(),
             hints: vec!["Use E:: for edges".into()],
             schema_answer: Some("lesson_answers/lesson3_schema.hx".into()),
             query_answer: None,
@@ -57,8 +58,8 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
         4 => Lesson {
             id: 4,
             title: "Defining Vectors".into(),
-            instructions: "Vectors in HelixDB allow us to create vector-based searches for semantic similarity.\nA vector is an array of floating-point numbers that represents the semantic meaning of data.\nIn this case, we'll create a vector for city descriptions.\n\nCreate a CityDescription vector with vector property that takes an array of F64".into(),
-            hints: vec!["Use E:: for edges".into()],
+            instructions: "Vectors in HelixDB allow us to create vector-based searches for semantic similarity.\n\nA **vector** is an array of floating-point numbers that represents the semantic meaning of data. In this case, we'll create a vector for city descriptions to enable semantic search capabilities.\n\nCreate a CityDescription vector with vector property that takes an array of F64".into(),
+            hints: vec!["Use V:: for vectors".into()],
             schema_answer: Some("lesson_answers/lesson4_schema.hx".into()),
             query_answer: None,
             query_answer_file: None,
@@ -67,7 +68,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
         5 => Lesson {
             id: 5,
             title: "Basic Node Creation".into(),
-            instructions: "Now that we have our schema, we need to write queries to insert the data. The best way to go about this given the structure of our data is to go from top (broad) to bottom (narrow) of the hierarchy.\nFirst, we will start with a basic query to create a continent.\nUsually, creation queries almost always include all the properties of the node in the arguments.\nIn this case, we only need to know the continent's name.\nUse `AddN` to add a `Continent` node with property `name`.\nDon't forget to run helix deploy to start up your helix instance!".into(),
+            instructions: "Now that we have our schema, we need to write queries to insert the data. The best way to go about this given the structure of our data is to go from **top (broad)** to **bottom (narrow)** of the hierarchy.\n\nFirst, we will start with a basic query to create a continent.\n\n**Key Points:**\n- Creation queries almost always include all the properties of the node in the arguments\n- In this case, we only need to know the continent's name\n- Use **AddN** to add a **Continent** node with property **name**\n\n**Important:** Don't forget to run **helix deploy** to start up your helix instance!".into(),
             hints: vec!["Add this header into your query.hx: QUERY createContinent (name: String) =>".into()],
             schema_answer: Some("lesson_answers/lesson4_schema.hx".into()),
             query_answer: Some("query_answers/lesson5.json".into()),
@@ -77,7 +78,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
         6 => Lesson {
             id: 6,
             title: "Basic Node Creation".into(),
-            instructions: "Most of the nodes in our schema are related to other nodes,\nwhich means that we have to also create edges between them.\nHowever, we can optimize this process by creating both the node\nand the edge connecting it to other existing nodes in one query.\nFor this example, we will create a country node and connect it\nto its corresponding continent node.To do this, we will need to know all\nthe properties of our `Country` node and also the `Continent` node’s id.\nWith that information, we will first create a new `Country` node using `AddN`.\nThen we will get the `Continent`≈ node via the node’s ID so that we can create a\n`Continent_to_Country` edge going from the created `Continent` to `Country` node\nusing `AddE`.We will also do the same thing for creating a city node.".into(),
+            instructions: "Most of the nodes in our schema are related to other nodes,\nwhich means that we have to also create edges between them.\nHowever, we can optimize this process by creating both the node\nand the edge connecting it to other existing nodes in one query.\nFor this example, we will create a country node and connect it\nto its corresponding continent node.To do this, we will need to know all\nthe properties of our **Country** node and also the **Continent** node's id.\nWith that information, we will first create a new **Country** node using **AddN**.\nThen we will get the **Continent** node via the node's ID so that we can create a\n**Continent_to_Country** edge going from the created **Continent** to **Country** node\nusing **AddE**.We will also do the same thing for creating a city node.".into(),
             hints: vec!["Add this header into your query.hx: QUERY createCity (country_id: ID, name: String, description: String) =>".into(),
             "Add this header into your query.hx: QUERY createCountry (continent_id: ID, name: String, currency: String, population: U64, gdp: F64) =>".into()],
             schema_answer: Some("lesson_answers/lesson4_schema.hx".into()),
@@ -118,7 +119,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
         10 => Lesson {
             id: 10,
             title: "Get All Nodes of Type".into(),
-            instructions: "In addition to retrieving nodes by ID, we\noften want to retrieve all nodes of a certain\ntype. Since we have a hierarchical structure,\nwe willalso want to get all countries within a\ncontinent and all cities within a country.\nWrite 3 queries to get all `Continent`, `Country`,\nand `City` nodes.Write 2 queries to get all `Country`\nand `City` nodes by their parent IDs.".into(),
+            instructions: "In addition to retrieving nodes by ID, we\noften want to retrieve all nodes of a certain\ntype. Since we have a hierarchical structure,\nwe willalso want to get all countries within a\ncontinent and all cities within a country.\nWrite 3 queries to get all **Continent**, **Country**,\nand **City** nodes.Write 2 queries to get all **Country**\nand **City** nodes by their parent IDs.".into(),
             hints: vec!["Add this header into your query.hx: QUERY embedDescription (city_id: ID, vector: [F64]) =>".into()],
             schema_answer: Some("lesson_answers/lesson4_schema.hx".into()),
             query_answer: Some("query_answers/lesson10.json".into()),
@@ -128,7 +129,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
         11 => Lesson {
             id: 11,
             title: "Get Nodes by Meta Relationship".into(),
-            instructions: "Similar to getting nodes by their hierarchical relationships, we can also get nodes via their meta relationships. For this example, we will retrieve the capital city of a country. We'll do this by traversing the `Country_to_Capital` edge from a `Country` node to find its capital `City` node.\n\nWrite a query to get a country's capital `City` node by the country's ID.".into(),
+            instructions: "Similar to getting nodes by their hierarchical relationships, we can also get nodes via their meta relationships. For this example, we will retrieve the capital city of a country. We'll do this by traversing the **Country_to_Capital** edge from a **Country** node to find its capital **City** node.\n\nWrite a query to get a country's capital **City** node by the country's ID.".into(),
             hints: vec!["Add this header into your query.hx: QUERY getCapital (country_id: ID) =>".into()],
             schema_answer: Some("lesson_answers/lesson4_schema.hx".into()),
             query_answer: Some("query_answers/lesson11.json".into()),
@@ -138,7 +139,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
         12 => Lesson {
             id: 12,
             title: "Get Node Properties".into(),
-            instructions: "Sometimes we don't need the full node, just a few specific properties. For example, we can display only the names and populations of countries without pulling in the entire object. In this case, we can use property selection syntax to retrieve just the fields we care about. This allows for more efficient querying and cleaner data handling when building visualizations or summaries.\n\nWrite a query to get each country's `name` and `population`".into(),
+            instructions: "Sometimes we don't need the full node, just a few specific properties. For example, we can display only the names and populations of countries without pulling in the entire object. In this case, we can use property selection syntax to retrieve just the fields we care about. This allows for more efficient querying and cleaner data handling when building visualizations or summaries.\n\nWrite a query to get each country's **name** and **population**".into(),
             hints: vec!["Add this header into your query.hx: QUERY getCountryNames () =>".into(), "Use property selection syntax ::={name, population}".into()],
             schema_answer: Some("lesson_answers/lesson4_schema.hx".into()),
             query_answer: Some("query_answers/lesson12.json".into()),
@@ -148,7 +149,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
         13 => Lesson {
             id: 13,
             title: "Get Nodes by Property".into(),
-            instructions: "In addition to retrieving nodes by their ID or relationship, we often need to find nodes based on their properties. This allows for more flexible querying of our graph database. Let's write queries to retrieve nodes by specific properties they contain.\n\nWrite 3 queries that get the `Continent`, `Country`, and `City` nodes by their names.".into(),
+            instructions: "In addition to retrieving nodes by their ID or relationship, we often need to find nodes based on their properties. This allows for more flexible querying of our graph database. Let's write queries to retrieve nodes by specific properties they contain.\n\nWrite 3 queries that get the **Continent**, **Country**, and **City** nodes by their names.".into(),
             hints: vec![
                 "Add this header into your query.hx: QUERY getContinentByName (continent_name: String) =>".into(), 
                 "Use WHERE clause with property matching: ::WHERE(_::{name}::EQ(continent_name))".into()
@@ -176,7 +177,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
         15 => Lesson {
             id: 15,
             title: "Get Nodes by Many Properties".into(),
-            instructions: "Now that we've seen how to get nodes by individual properties, we can also combine multiple conditions to perform more advanced filtering. For this example, we'll write queries that retrieve Country nodes based on a combination of property values. This includes filtering countries with a population greater than a minimum and a GDP less than or equal to a maximum, as well as retrieving countries that either use a specific currency or have a population below a certain threshold. These types of queries allow us to refine our searches and extract more targeted subsets of data from our graph.\n\nWrite a query to find `Country` nodes with both population greater than `min_population` and GDP less than or equal to `max_gdp`.\n\nWrite a query to find `Country` nodes with either a specific `currency` or a population less than or equal to `max_population`.".into(),
+            instructions: "Now that we've seen how to get nodes by individual properties, we can also combine multiple conditions to perform more advanced filtering. For this example, we'll write queries that retrieve Country nodes based on a combination of property values. This includes filtering countries with a population greater than a minimum and a GDP less than or equal to a maximum, as well as retrieving countries that either use a specific currency or have a population below a certain threshold. These types of queries allow us to refine our searches and extract more targeted subsets of data from our graph.\n\nWrite a query to find **Country** nodes with both population greater than **min_population** and GDP less than or equal to **max_gdp**.\n\nWrite a query to find **Country** nodes with either a specific **currency** or a population less than or equal to **max_population**.".into(),
             hints: vec![
                 "Add this header into your query.hx: QUERY getCountriesByPopGdp (min_population: I64, max_gdp: F64) =>".into(),
                 "Add this header into your query.hx: QUERY getCountriesByCurrPop (currency: String, max_population: I64) =>".into(),
@@ -191,7 +192,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
         16 => Lesson {
             id: 16,
             title: "Get Nodes by Meta Relationships".into(),
-            instructions: "In addition to traversing structural relationships, we can also query nodes based on meta relationships. For example, we can retrieve all `Country` nodes that have a capital city assigned. This involves checking for the existence of an outgoing `Country_to_Capital` edge from each `Country` node. Meta relationship queries like this are useful for identifying nodes with specific contextual connections beyond hierarchical structures.\n\nWrite a query to get `Country` nodes that have capital cities.".into(),
+            instructions: "In addition to traversing structural relationships, we can also query nodes based on meta relationships. For example, we can retrieve all **Country** nodes that have a capital city assigned. This involves checking for the existence of an outgoing **Country_to_Capital** edge from each **Country** node. Meta relationship queries like this are useful for identifying nodes with specific contextual connections beyond hierarchical structures.\n\nWrite a query to get **Country** nodes that have capital cities.".into(),
             hints: vec![
                 "Add this header into your query.hx: QUERY getCountriesWithCapitals () =>".into(),
                 "Use EXISTS() to check for the existence of an outgoing edge: WHERE(EXISTS(_::Out<Country_to_Capital>))".into()

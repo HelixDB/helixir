@@ -15,6 +15,8 @@ pub fn load_instance_data() -> serde_json::Value {
 pub fn create_default_instance_data() -> serde_json::Value {
     json!({
         "instance_id": "",
+        "current_lesson": 0,
+        "completed_lessons": [],
         "created_entities": {
             "continents": [],
             "countries": [],
@@ -69,7 +71,7 @@ pub fn get_or_prompt_instance_id() -> Result<String, String> {
     }
 
     println!("First time running queries! We need your HelixDB instance ID.");
-    println!("Run 'helix instances' in another terminal and copy your instance ID.");
+    println!("Run 'helix status' in another terminal and copy your instance ID.");
     println!("Enter your instance ID:");
 
     let mut input = String::new();
@@ -85,6 +87,48 @@ pub fn get_or_prompt_instance_id() -> Result<String, String> {
 
     println!("Instance ID saved! Future query runs will be automatic.");
     Ok(instance_id)
+}
+
+pub fn get_current_lesson() -> usize {
+    let instance_data = load_instance_data();
+    instance_data["current_lesson"].as_u64().unwrap_or(0) as usize
+}
+
+pub fn save_current_lesson(lesson_id: usize) -> Result<(), String> {
+    let mut instance_data = load_instance_data();
+    instance_data["current_lesson"] = json!(lesson_id);
+    save_instance_data(&instance_data)
+}
+
+pub fn mark_lesson_completed(lesson_id: usize) -> Result<(), String> {
+    let mut instance_data = load_instance_data();
+
+    if let Some(completed_lessons) = instance_data["completed_lessons"].as_array_mut() {
+        let lesson_value = json!(lesson_id);
+        if !completed_lessons.contains(&lesson_value) {
+            completed_lessons.push(lesson_value);
+            completed_lessons.sort_by(|a, b| a.as_u64().cmp(&b.as_u64()));
+        }
+    }
+
+    save_instance_data(&instance_data)
+}
+
+pub fn get_completed_lessons() -> Vec<usize> {
+    let instance_data = load_instance_data();
+    if let Some(completed_lessons) = instance_data["completed_lessons"].as_array() {
+        completed_lessons
+            .iter()
+            .filter_map(|v| v.as_u64().map(|n| n as usize))
+            .collect()
+    } else {
+        Vec::new()
+    }
+}
+
+#[allow(dead_code)]
+pub fn is_lesson_completed(lesson_id: usize) -> bool {
+    get_completed_lessons().contains(&lesson_id)
 }
 
 pub fn redeploy_instance(instance_id: &str) -> bool {
@@ -105,7 +149,7 @@ pub fn redeploy_instance(instance_id: &str) -> bool {
                 || stderr_str.contains("No Helix instance found")
             {
                 println!("Error: Invalid instance ID '{}'", instance_id);
-                println!("Run 'helix instances' to get your correct instance ID");
+                println!("Run 'helix status' to get your correct instance ID");
                 return false;
             }
 

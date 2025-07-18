@@ -1,55 +1,26 @@
-use std::io;
+use crate::formatter::HelixFormatter;
 use crate::lessons::get_lesson;
+use std::io;
 
 pub fn clear_screen() {
     clearscreen::clear().expect("Failed to clear screen");
 }
 
+#[allow(dead_code)]
 pub fn welcome_screen() {
     let current_lesson = 0;
     clear_screen();
-    println!(
-        r"██╗    ██╗███████╗██╗      ██████╗ ██████╗ ███╗   ███╗███████╗    ████████╗ ██████╗ "
-    );
-    println!(
-        r"██║    ██║██╔════╝██║     ██╔════╝██╔═══██╗████╗ ████║██╔════╝    ╚══██╔══╝██╔═══██╗"
-    );
-    println!(
-        r"██║ █╗ ██║█████╗  ██║     ██║     ██║   ██║██╔████╔██║█████╗         ██║   ██║   ██║"
-    );
-    println!(
-        r"██║███╗██║██╔══╝  ██║     ██║     ██║   ██║██║╚██╔╝██║██╔══╝         ██║   ██║   ██║"
-    );
-    println!(
-        r"╚███╔███╔╝███████╗███████╗╚██████╗╚██████╔╝██║ ╚═╝ ██║███████╗       ██║   ╚██████╔╝"
-    );
-    println!(
-        r" ╚══╝╚══╝ ╚══════╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝       ╚═╝    ╚═════╝ "
-    );
-    println!("");
-    println!(r"██╗  ██╗███████╗██╗     ██╗██╗  ██╗██╗██████╗ ");
-    println!(r"██║  ██║██╔════╝██║     ██║╚██╗██╔╝██║██╔══██╗");
-    println!(r"███████║█████╗  ██║     ██║ ╚███╔╝ ██║██████╔╝");
-    println!(r"██╔══██║██╔══╝  ██║     ██║ ██╔██╗ ██║██╔══██╗");
-    println!(r"██║  ██║███████╗███████╗██║██╔╝ ██╗██║██║  ██║");
-    println!(r"╚═╝  ╚═╝╚══════╝╚══════╝╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝");
-    println!("═══════════════════════════════════════");
-    println!("A rustling-styled interactive learning tool for mastering helix-db from 0 to hero!");
-    println!();
-    println!("Let's begin your journey!");
+
+    let formatter = HelixFormatter::new();
+    formatter.display_welcome();
     display_lesson(current_lesson);
 }
 
 pub fn display_lesson(lesson_id: usize) {
     let lesson = get_lesson(lesson_id);
+    let formatter = HelixFormatter::new();
 
-    println!("═══════════════════════════════════════");
-    println!("Lesson {}: {}", lesson.id, lesson.title);
-    println!("═══════════════════════════════════════");
-    println!("{}", lesson.instructions);
-    println!();
-    println!();
-    println!("Commands: (n)ext, (b)ack, (c)heck, (h)elp, (q)uit");
+    formatter.display_lesson(&lesson.title, lesson.id, &lesson.instructions);
 }
 
 pub fn get_user_input() -> String {

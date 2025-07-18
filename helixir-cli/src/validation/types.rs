@@ -25,6 +25,7 @@ pub struct ParsedSchema {
 pub struct PropertyErrors {
     pub missing: Vec<String>,
     pub extra: Vec<String>,
+    #[allow(dead_code)]
     pub wrong_type: Vec<(String, String, String)>,
 }
 
@@ -36,12 +37,15 @@ pub struct QueryValidator {
 pub struct ValidationResult {
     pub is_correct: bool,
     pub missing_nodes: Vec<String>,
+    #[allow(dead_code)]
     pub extra_nodes: Vec<String>,
     pub property_errors: HashMap<String, PropertyErrors>,
     pub missing_edges: Vec<String>,
+    #[allow(dead_code)]
     pub extra_edges: Vec<String>,
     pub edge_errors: HashMap<String, EdgeErrors>,
     pub missing_vectors: Vec<String>,
+    #[allow(dead_code)]
     pub extra_vectors: Vec<String>,
     pub vector_errors: HashMap<String, PropertyErrors>,
 }
@@ -54,6 +58,7 @@ pub struct EdgeErrors {
 
 #[derive(Debug, Clone)]
 pub struct ParsedQuery {
+    #[allow(dead_code)]
     pub name: String,
     pub parameters: String,
     pub body: String,

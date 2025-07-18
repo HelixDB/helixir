@@ -137,7 +137,7 @@ impl QueryValidator {
                         "name": result.continent.name
                     }),
                     |result| format!(
-                        "Continent created successfully!\nDatabase result:\n{}\nSaved continent ID for future lessons.",
+                        "Continent created successfully!\nDatabase result:\n{}",
                         serde_json::to_string_pretty(result).unwrap_or_default()
                     ),
                     |input, result| format!(
@@ -174,7 +174,7 @@ impl QueryValidator {
                         "continent_id": continent_id
                     }),
                     |result| format!(
-                        "Country created successfully!\nDatabase result:\n{}\nSaved country ID for future lessons.",
+                        "Country created successfully!\nDatabase result:\n{}",
                         serde_json::to_string_pretty(result).unwrap_or_default()
                     ),
                     |_, result| format!(
@@ -205,7 +205,7 @@ impl QueryValidator {
                         "country_id": country_id
                     }),
                     |result| format!(
-                        "City created successfully!\nDatabase result:\n{}\nSaved city ID for future lessons.",
+                        "City created successfully!\nDatabase result:\n{}",
                         serde_json::to_string_pretty(result).unwrap_or_default()
                     ),
                     |_, result| format!(

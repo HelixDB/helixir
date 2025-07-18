@@ -1,4 +1,5 @@
 mod app;
+mod formatter;
 mod lesson_types;
 mod lessons;
 mod ui;
