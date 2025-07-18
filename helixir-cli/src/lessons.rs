@@ -158,6 +158,63 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
             query_answer_file: Some("lesson_answers/lesson13_queries.hx".into()),
             query_name: Some(vec!["getContinentByName".into(), "getCountryByName".into(), "getCityByName".into()]),
         },
+        14 => Lesson {
+            id: 14,
+            title: "Filtering with WHERE Conditions".into(),
+            instructions: "Building on property-based queries, we can also filter nodes using comparison operators. This allows us to find nodes that meet specific criteria rather than exact matches. Let's practice with different comparison operators to filter countries by various attributes.\n\nWrite 3 queries to filter countries: one by currency (exact match), one by population (less than a value), and one by GDP (greater than or equal to a value).".into(),
+            hints: vec![
+                "Add this header into your query.hx: QUERY getCountriesByCurrency (currency: String) =>".into(),
+                "Add this header into your query.hx: QUERY getCountriesByPopulation (max_population: U64) =>".into(),
+                "Add this header into your query.hx: QUERY getCountriesByGdp (min_gdp: F64) =>".into(),
+                "Use comparison operators: ::EQ() for equality, ::LT() for less than, ::GTE() for greater than or equal".into()
+            ],
+            schema_answer: Some("lesson_answers/lesson4_schema.hx".into()),
+            query_answer: Some("query_answers/lesson14.json".into()),
+            query_answer_file: Some("lesson_answers/lesson14_queries.hx".into()),
+            query_name: Some(vec!["getCountriesByCurrency".into(), "getCountriesByPopulation".into(), "getCountriesByGdp".into()]),
+        },
+        15 => Lesson {
+            id: 15,
+            title: "Get Nodes by Many Properties".into(),
+            instructions: "Now that we've seen how to get nodes by individual properties, we can also combine multiple conditions to perform more advanced filtering. For this example, we'll write queries that retrieve Country nodes based on a combination of property values. This includes filtering countries with a population greater than a minimum and a GDP less than or equal to a maximum, as well as retrieving countries that either use a specific currency or have a population below a certain threshold. These types of queries allow us to refine our searches and extract more targeted subsets of data from our graph.\n\nWrite a query to find `Country` nodes with both population greater than `min_population` and GDP less than or equal to `max_gdp`.\n\nWrite a query to find `Country` nodes with either a specific `currency` or a population less than or equal to `max_population`.".into(),
+            hints: vec![
+                "Add this header into your query.hx: QUERY getCountriesByPopGdp (min_population: U64, max_gdp: F64) =>".into(),
+                "Add this header into your query.hx: QUERY getCountriesByCurrPop (currency: String, max_population: U64) =>".into(),
+                "Use AND() for combining conditions with logical AND: AND(_::{population}::GT(min_population), _::{gdp}::LTE(max_gdp))".into(),
+                "Use OR() for combining conditions with logical OR: OR(_::{currency}::EQ(currency), _::{population}::LTE(max_population))".into()
+            ],
+            schema_answer: Some("lesson_answers/lesson4_schema.hx".into()),
+            query_answer: Some("query_answers/lesson15.json".into()),
+            query_answer_file: Some("lesson_answers/lesson15_queries.hx".into()),
+            query_name: Some(vec!["getCountriesByPopGdp".into(), "getCountriesByCurrPop".into()]),
+        },
+        16 => Lesson {
+            id: 16,
+            title: "Get Nodes by Meta Relationships".into(),
+            instructions: "In addition to traversing structural relationships, we can also query nodes based on meta relationships. For example, we can retrieve all `Country` nodes that have a capital city assigned. This involves checking for the existence of an outgoing `Country_to_Capital` edge from each `Country` node. Meta relationship queries like this are useful for identifying nodes with specific contextual connections beyond hierarchical structures.\n\nWrite a query to get `Country` nodes that have capital cities.".into(),
+            hints: vec![
+                "Add this header into your query.hx: QUERY getCountriesWithCapitals () =>".into(),
+                "Use EXISTS() to check for the existence of an outgoing edge: WHERE(EXISTS(_::Out<Country_to_Capital>))".into()
+            ],
+            schema_answer: Some("lesson_answers/lesson4_schema.hx".into()),
+            query_answer: Some("query_answers/lesson16.json".into()),
+            query_answer_file: Some("lesson_answers/lesson16_queries.hx".into()),
+            query_name: Some(vec!["getCountriesWithCapitals".into()]),
+        },
+        17 => Lesson {
+            id: 17,
+            title: "Get Range of Nodes".into(),
+            instructions: "When working with large datasets, it's often useful to limit the number of results returned from a query. The RANGE operator allows you to implement pagination and control result set size efficiently. This is particularly important for performance when dealing with queries that might return many nodes. The RANGE operator takes two parameters: the starting index (0-based) and the number of items to return.\n\nWrite a query to get the first k (U64) City nodes in a continent given the continent's name.".into(),
+            hints: vec![
+                "Add this header into your query.hx: QUERY getContinentCities (continent_name: String, k: U64) =>".into(),
+                "Use RANGE(0, k) to limit results: ::Out<Country_to_City>::RANGE(0, k)".into(),
+                "Chain the traversals: continent -> countries -> cities with RANGE applied to the final result".into()
+            ],
+            schema_answer: Some("lesson_answers/lesson4_schema.hx".into()),
+            query_answer: Some("query_answers/lesson17.json".into()),
+            query_answer_file: Some("lesson_answers/lesson17_queries.hx".into()),
+            query_name: Some(vec!["getContinentCities".into()]),
+        },
         _ => Lesson {
             id: lesson_id,
             title: "Lesson Not Found".into(),

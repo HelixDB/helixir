@@ -476,6 +476,123 @@ impl QueryValidator {
                     Ok((false, error_msg))
                 }
             }
+            "getCountriesByCurrency" => {
+                let input_de: GetCountriesByCurrencyInput = serde_json::from_value(input)?;
+                let db_result: GetCountriesByCurrencyResult = self.execute_query(query_name, &input_de).await?;
+                
+                if !db_result.countries.is_empty() {
+                    let success_msg = format!(
+                        "Countries filtered by currency successfully!\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "No countries found with currency '{}'\nDatabase result:\n{}",
+                        input_de.currency,
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
+            "getCountriesByPopulation" => {
+                let input_de: GetCountriesByPopulationInput = serde_json::from_value(input)?;
+                let db_result: GetCountriesByPopulationResult = self.execute_query(query_name, &input_de).await?;
+                
+                if !db_result.countries.is_empty() {
+                    let success_msg = format!(
+                        "Countries filtered by population successfully!\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "No countries found with population less than {}\nDatabase result:\n{}",
+                        input_de.max_population,
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
+            "getCountriesByGdp" => {
+                let input_de: GetCountriesByGdpInput = serde_json::from_value(input)?;
+                let db_result: GetCountriesByGdpResult = self.execute_query(query_name, &input_de).await?;
+                
+                if !db_result.countries.is_empty() {
+                    let success_msg = format!(
+                        "Countries filtered by GDP successfully!\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "No countries found with GDP greater than or equal to {}\nDatabase result:\n{}",
+                        input_de.min_gdp,
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
+            "getCountriesByPopGdp" => {
+                let input_de: GetCountriesByPopGdpInput = serde_json::from_value(input)?;
+                let db_result: GetCountriesByPopGdpResult = self.execute_query(query_name, &input_de).await?;
+                
+                if !db_result.countries.is_empty() {
+                    let success_msg = format!(
+                        "Countries filtered by population and GDP successfully!\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "No countries found with population > {} and GDP <= {}\nDatabase result:\n{}",
+                        input_de.min_population,
+                        input_de.max_gdp,
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
+            "getCountriesByCurrPop" => {
+                let input_de: GetCountriesByCurrPopInput = serde_json::from_value(input)?;
+                let db_result: GetCountriesByCurrPopResult = self.execute_query(query_name, &input_de).await?;
+                
+                if !db_result.countries.is_empty() {
+                    let success_msg = format!(
+                        "Countries filtered by currency or population successfully!\nDatabase result:\n{}",
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "No countries found with currency '{}' or population <= {}\nDatabase result:\n{}",
+                        input_de.currency,
+                        input_de.max_population,
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
+            "getContinentCities" => {
+                let input_de: GetContinentCitiesInput = serde_json::from_value(input)?;
+                let db_result: GetContinentCitiesResult = self.execute_query(query_name, &input_de).await?;
+                
+                if !db_result.cities.is_empty() {
+                    let success_msg = format!(
+                        "Cities retrieved successfully from continent '{}'!\nDatabase result:\n{}",
+                        input_de.continent_name,
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "No cities found in continent '{}'\nDatabase result:\n{}",
+                        input_de.continent_name,
+                        serde_json::to_string_pretty(&db_result)?
+                    );
+                    Ok((false, error_msg))
+                }
+            }
             _ => Ok((
                 false,
                 format!(

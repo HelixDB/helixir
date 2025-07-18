@@ -40,7 +40,7 @@ impl App {
     
     pub fn initialize(&mut self) {
         if check_helix_init() {
-            self.current_lesson = 11;
+            self.current_lesson = 18;
             display_lesson(self.current_lesson);
         } else {
             welcome_screen();
@@ -49,7 +49,6 @@ impl App {
     
     pub fn run(&mut self) {
         self.initialize();
-        
         loop {
             let command = get_user_input();
             let action = self.parse_command(&command);

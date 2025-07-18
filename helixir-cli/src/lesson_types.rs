@@ -25,7 +25,7 @@ pub struct AddCountryInput {
     pub continent_id: String,
     pub name: String,
     pub currency: String,
-    pub population: u64,
+    pub population: i64,
     pub gdp: f64,
 }
 
@@ -39,7 +39,7 @@ pub struct CountryData {
     pub id: String,
     pub name: String,
     pub currency: String,
-    pub population: u64,
+    pub population: i64,
     pub gdp: f64,
 }
 
@@ -239,5 +239,81 @@ pub struct GetCityByNameInput {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct GetCityByNameResult {
     pub city: Vec<CityData>,
+}
+
+// get countries by filtering lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountriesByCurrencyInput {
+    pub currency: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountriesByCurrencyResult {
+    pub countries: Vec<CountryData>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountriesByPopulationInput {
+    pub max_population: u64,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountriesByPopulationResult {
+    pub countries: Vec<CountryData>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountriesByGdpInput {
+    pub min_gdp: f64,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountriesByGdpResult {
+    pub countries: Vec<CountryData>,
+}
+
+// get countries by multiple conditions lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountriesByPopGdpInput {
+    pub min_population: i64,
+    pub max_gdp: f64,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountriesByPopGdpResult {
+    pub countries: Vec<CountryData>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountriesByCurrPopInput {
+    pub currency: String,
+    pub max_population: i64,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountriesByCurrPopResult {
+    pub countries: Vec<CountryData>,
+}
+
+// get countries with capitals lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountriesWithCapitalsResult {
+    pub countries: Vec<CountryData>,
+}
+
+// get range of nodes lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetContinentCitiesInput {
+    pub continent_name: String,
+    pub k: u64,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetContinentCitiesResult {
+    pub cities: Vec<CityData>,
 }
 
