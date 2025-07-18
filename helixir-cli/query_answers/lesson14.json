@@ -1,0 +1,55 @@
+{
+    "queries": [
+        {
+            "query_name": "getCountriesByCurrency",
+            "input": {
+                "currency": "EUR"
+            },
+            "expected_output": {
+                "countries": [
+                    {
+                        "id": "germany_country_id",
+                        "name": "Germany",
+                        "currency": "EUR",
+                        "population": 83200000,
+                        "gdp": 4259.0
+                    }
+                ]
+            }
+        },
+        {
+            "query_name": "getCountriesByPopulation",
+            "input": {
+                "max_population": 70000000
+            },
+            "expected_output": {
+                "countries": [
+                    {
+                        "id": "uk_country_id",
+                        "name": "United Kingdom",
+                        "currency": "GBP",
+                        "population": 67500000,
+                        "gdp": 3131.0
+                    }
+                ]
+            }
+        },
+        {
+            "query_name": "getCountriesByGdp",
+            "input": {
+                "min_gdp": 4000.0
+            },
+            "expected_output": {
+                "countries": [
+                    {
+                        "id": "germany_country_id",
+                        "name": "Germany",
+                        "currency": "EUR",
+                        "population": 83200000,
+                        "gdp": 4259.0
+                    }
+                ]
+            }
+        }
+    ]
+}

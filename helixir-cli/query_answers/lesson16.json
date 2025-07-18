@@ -1,0 +1,26 @@
+{
+    "queries": [
+        {
+            "query_name": "getCountriesWithCapitals",
+            "input": {},
+            "expected_output": {
+                "countries": [
+                    {
+                        "id": "uk_country_id",
+                        "name": "United Kingdom",
+                        "currency": "GBP",
+                        "population": 67500000,
+                        "gdp": 3131.0
+                    },
+                    {
+                        "id": "germany_country_id",
+                        "name": "Germany",
+                        "currency": "EUR",
+                        "population": 83200000,
+                        "gdp": 4259.0
+                    }
+                ]
+            }
+        }
+    ]
+}

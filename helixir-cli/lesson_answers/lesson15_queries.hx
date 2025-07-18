@@ -81,3 +81,33 @@ QUERY getCityByName (city_name: String) =>
     city <- N<City>::WHERE(_::{name}::EQ(city_name))
     RETURN city
 
+
+QUERY getCountriesByCurrency (currency: String) =>
+    countries <- N<Country>::WHERE(_::{currency}::EQ(currency))
+    RETURN countries
+
+QUERY getCountriesByPopulation (max_population: I64) =>
+    countries <- N<Country>::WHERE(_::{population}::LT(max_population))
+    RETURN countries
+
+QUERY getCountriesByGdp (min_gdp: F64) =>
+    countries <- N<Country>::WHERE(_::{gdp}::GTE(min_gdp))
+    RETURN countries
+
+QUERY getCountriesByPopGdp (min_population: I64, max_gdp: F64) =>
+    countries <- N<Country>::WHERE(
+                    AND(
+                        _::{population}::GT(min_population),
+                        _::{gdp}::LTE(max_gdp)
+                    )
+            )
+    RETURN countries
+
+QUERY getCountriesByCurrPop (currency: String, max_population: I64) =>
+    countries <- N<Country>::WHERE(
+                    OR(
+                            _::{currency}::EQ(currency),
+                            _::{population}::LTE(max_population)
+                    )
+            )
+    RETURN countries

@@ -5,7 +5,7 @@ N::Continent {
 N::Country {
     name: String,
     currency: String,
-    population: U64,
+    population: I64,
     gdp: F64
 }
 
