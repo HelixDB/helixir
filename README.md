@@ -1,6 +1,6 @@
 # Helixir CLI
 
-An interactive command-line tutorial for learning [HelixDB](https://helix-db.com), a graph database system.
+An interactive command-line tutorial for learning [HelixDB](https://helix-db.com), a graph vector database system.
 
 ## Installation
 
