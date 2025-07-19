@@ -1,0 +1,42 @@
+{
+    "queries": [
+        {
+            "query_name": "getContinent",
+            "input": {
+                "continent_id": "europe_continent_id"
+            },
+            "expected_output": {
+                "continent": {
+                    "id": "europe_continent_id",
+                    "name": "Europe"
+                }
+            }
+        },
+        {
+            "query_name": "getCountry",
+            "input": {
+                "country_id": "uk_country_id"
+            },
+            "expected_output": {
+                "country": {
+                    "id": "uk_country_id",
+                    "name": "United Kingdom",
+                    "population": 67000000
+                }
+            }
+        },
+        {
+            "query_name": "getCity",
+            "input": {
+                "city_id": "london_city_id"
+            },
+            "expected_output": {
+                "city": {
+                    "id": "london_city_id",
+                    "name": "London",
+                    "population": 9000000
+                }
+            }
+        }
+    ]
+}

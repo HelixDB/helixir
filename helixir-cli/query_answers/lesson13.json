@@ -1,0 +1,50 @@
+{
+    "queries": [
+        {
+            "query_name": "getContinentByName",
+            "input": {
+                "continent_name": "Europe"
+            },
+            "expected_output": {
+                "continent": [
+                    {
+                        "id": "europe_continent_id",
+                        "name": "Europe"
+                    }
+                ]
+            }
+        },
+        {
+            "query_name": "getCountryByName", 
+            "input": {
+                "country_name": "United Kingdom"
+            },
+            "expected_output": {
+                "country": [
+                    {
+                        "id": "uk_country_id",
+                        "name": "United Kingdom",
+                        "currency": "GBP",
+                        "population": 67500000,
+                        "gdp": 3131.0
+                    }
+                ]
+            }
+        },
+        {
+            "query_name": "getCityByName",
+            "input": {
+                "city_name": "London"
+            },
+            "expected_output": {
+                "city": [
+                    {
+                        "id": "london_city_id",
+                        "name": "London", 
+                        "description": "Capital of United Kingdom"
+                    }
+                ]
+            }
+        }
+    ]
+}

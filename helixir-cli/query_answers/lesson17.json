@@ -1,0 +1,30 @@
+{
+    "queries": [
+        {
+            "query_name": "getContinentCities",
+            "input": {
+                "continent_name": "Europe",
+                "k": 3
+            },
+            "expected_output": {
+                "cities": [
+                    {
+                        "id": "london_city_id",
+                        "name": "London",
+                        "description": "Capital city of the United Kingdom"
+                    },
+                    {
+                        "id": "manchester_city_id",
+                        "name": "Manchester",
+                        "description": "Major city in the north of England"
+                    },
+                    {
+                        "id": "berlin_city_id",
+                        "name": "Berlin",
+                        "description": "Capital city of Germany"
+                    }
+                ]
+            }
+        }
+    ]
+}

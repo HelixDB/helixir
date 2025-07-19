@@ -1,17 +1,14 @@
 use serde::{Deserialize, Serialize};
 
+// continent lesson
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AddContinentInput {
     pub name: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct AddContinentOutput {
-    id: String,
-    pub name: String,
-}
-#[derive(Serialize, Deserialize, Debug)]
-pub struct CreateContinentResult {
+pub struct AddContinentResult {
     pub continent: ContinentData,
 }
 
@@ -21,17 +18,19 @@ pub struct ContinentData {
     pub name: String,
 }
 
+// country lesson
+
 #[derive(Serialize, Deserialize, Debug)]
-pub struct CreateCountryInput {
+pub struct AddCountryInput {
     pub continent_id: String,
     pub name: String,
     pub currency: String,
-    pub population: u64,
+    pub population: i64,
     pub gdp: f64,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct CreateCountryResult {
+pub struct AddCountryResult {
     pub country: CountryData,
 }
 
@@ -40,19 +39,23 @@ pub struct CountryData {
     pub id: String,
     pub name: String,
     pub currency: String,
-    pub population: u64,
+    pub population: i64,
     pub gdp: f64,
+    pub label: String,
 }
 
+
+// city lesson
+
 #[derive(Serialize, Deserialize, Debug)]
-pub struct CreateCityInput {
+pub struct AddCityInput {
     pub country_id: String,
     pub name: String,
     pub description: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct CreateCityResult {
+pub struct AddCityResult {
     pub city: CityData,
 }
 
@@ -63,19 +66,16 @@ pub struct CityData {
     pub description: String,
 }
 
+// set capital city lesson
+
 #[derive(Serialize, Deserialize, Debug)]
-pub struct SetCapitalInput {
+pub struct AddCapitalInput {
     pub country_id: String,
     pub city_id: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct SetCapitalOutput {
-    pub country_capital: CapitalEdgeData,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct SetCapitalResult {
+pub struct AddCapitalResult {
     pub country_capital: CapitalEdgeData,
 }
 
@@ -86,3 +86,351 @@ pub struct CapitalEdgeData {
     pub to_node: String,
     pub label: String,
 }
+
+// embedding lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CreateDescEmbeddingInput {
+    pub city_id: String,
+    pub vector: Vec<f64>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CreateDescEmbeddingResult {
+    pub embedding: DescEmbeddingData,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DescEmbeddingData {
+    pub id: String,
+    pub data: Vec<f64>,
+    pub label: String,
+    pub score: f64,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CityEmbeddingEdgeData {
+    pub id: String,
+    pub from_node: String,
+    pub to_node: String,
+    pub label: String,
+}
+
+// get continent, city and country
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetContinentInput {
+    pub continent_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetContinentResult {
+    pub continent: ContinentData,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountryInput {
+    pub country_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountryResult {
+    pub country: CountryData,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCityInput {
+    pub city_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCityResult {
+    pub city: CityData,
+}
+
+// get all by node
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetAllContinentsResult {
+    pub continents: Vec<ContinentData>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetAllCountriesResult {
+    pub countries: Vec<CountryData>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetAllCitiesResult {
+    pub cities: Vec<CityData>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountriesInContinentInput {
+    pub continent_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountriesInContinentResult {
+    pub countries: Vec<CountryData>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCitiesInCountryInput {
+    pub country_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCitiesInCountryResult {
+    pub cities: Vec<CityData>,
+}
+
+// get capital city lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCapitalInput {
+    pub country_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCapitalResult {
+    pub capital: Vec<CityData>,
+}
+
+// get country names lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CountryNameData {
+    pub name: Vec<String>,
+    pub population: Vec<u64>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountryNamesResult {
+    pub countries: Vec<CountryNameData>,
+}
+
+// get nodes by name lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetContinentByNameInput {
+    pub continent_name: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetContinentByNameResult {
+    pub continent: Vec<ContinentData>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountryByNameInput {
+    pub country_name: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountryByNameResult {
+    pub country: Vec<CountryData>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCityByNameInput {
+    pub city_name: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCityByNameResult {
+    pub city: Vec<CityData>,
+}
+
+// get countries by filtering lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountriesByCurrencyInput {
+    pub currency: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountriesByCurrencyResult {
+    pub countries: Vec<CountryData>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountriesByPopulationInput {
+    pub max_population: u64,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountriesByPopulationResult {
+    pub countries: Vec<CountryData>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountriesByGdpInput {
+    pub min_gdp: f64,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountriesByGdpResult {
+    pub countries: Vec<CountryData>,
+}
+
+// get countries by multiple conditions lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountriesByPopGdpInput {
+    pub min_population: i64,
+    pub max_gdp: f64,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountriesByPopGdpResult {
+    pub countries: Vec<CountryData>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountriesByCurrPopInput {
+    pub currency: String,
+    pub max_population: i64,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountriesByCurrPopResult {
+    pub countries: Vec<CountryData>,
+}
+
+// get countries with capitals lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountriesWithCapitalsResult {
+    pub countries: Vec<CountryData>,
+}
+
+// get range of nodes lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetContinentCitiesInput {
+    pub continent_name: String,
+    pub k: u64,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetContinentCitiesResult {
+    pub cities: Vec<CityData>,
+}
+
+// count capitals lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CountCapitalsResult {
+    pub num_capital: u64,
+}
+
+// get countries by city count lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountryByCityCntInput {
+    pub num_cities: u64,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GetCountryByCityCntResult {
+    pub countries: Vec<CountryData>,
+}
+
+// semantic search lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SearchDescriptionsInput {
+    pub vector: Vec<f64>,
+    pub k: u64,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SearchDescriptionsResult {
+    pub cities: Vec<CityData>,
+}
+
+// updating nodes lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdateCurrencyInput {
+    pub country_id: String,
+    pub currency: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdateCurrencyResult {
+    pub country: CountryData,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdatePopGdpInput {
+    pub country_id: String,
+    pub population: i64,
+    pub gdp: f64,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdatePopGdpResult {
+    pub country: CountryData,
+}
+
+// updating meta relationships lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdateCapitalInput {
+    pub country_id: String,
+    pub city_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdateCapitalResult {
+    pub city: CityData,
+}
+
+// updating embeddings lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdateDescriptionInput {
+    pub city_id: String,
+    pub description: String,
+    pub vector: Vec<f64>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UpdateDescriptionResult {
+    pub city: CityData,
+}
+
+// deleting nodes lesson
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DeleteCityInput {
+    pub city_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DeleteCityResult {
+    pub result: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DeleteCapitalInput {
+    pub country_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DeleteCapitalResult {
+    pub result: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DeleteCountryInput {
+    pub country_id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DeleteCountryResult {
+    pub result: String,
+}
+

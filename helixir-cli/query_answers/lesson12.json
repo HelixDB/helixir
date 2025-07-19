@@ -1,0 +1,20 @@
+{
+    "queries": [
+        {
+            "query_name": "getCountryNames",
+            "input": {},
+            "expected_output": {
+                "countries": [
+                    {
+                        "name": ["United Kingdom"],
+                        "population": [67500000]
+                    },
+                    {
+                        "name": ["Germany"],
+                        "population": [83200000]
+                    }
+                ]
+            }
+        }
+    ]
+}

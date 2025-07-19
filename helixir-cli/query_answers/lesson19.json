@@ -1,0 +1,13 @@
+{
+    "queries": [
+        {
+            "query_name": "getCountryByCityCnt",
+            "input": {
+                "num_cities": 1
+            },
+            "expected_output": {
+                "countries": []
+            }
+        }
+    ]
+}

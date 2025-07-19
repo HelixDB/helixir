@@ -19,3 +19,21 @@ QUERY setCapital (country_id: ID, city_id: ID) =>
     city <- N<City>(city_id)
     country_capital <- AddE<Country_to_Capital>()::From(country)::To(city)
     RETURN country_capital
+
+QUERY embedDescription (city_id: ID, vector: [F64]) =>
+    embedding <- AddV<CityDescription>(vector)
+    city <- N<City>(city_id)
+    city_embedding <- AddE<City_to_Embedding>()::From(city)::To(embedding)
+    RETURN embedding
+
+QUERY getContinent (continent_id: ID) =>
+    continent <- N<Continent>(continent_id)
+    RETURN continent
+
+QUERY getCountry (country_id: ID) =>
+    country <- N<Country>(country_id)
+    RETURN country
+
+QUERY getCity (city_id: ID) =>
+    city <- N<City>(city_id)
+    RETURN city

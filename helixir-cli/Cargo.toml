@@ -1,7 +1,27 @@
 [package]
 name = "helixir-cli"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
+description = "Interactive CLI tutorial for learning HelixDB"
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/PUTT/helixir/helixir-cli"
+keywords = ["database", "graph", "tutorial", "helix", "cli"]
+categories = ["command-line-utilities", "database", "education"]
+
+# Include the lesson files in the published package
+include = [
+    "src/**/*",
+    "Cargo.toml",
+    "README.md",
+    "LICENSE",
+    "lesson_answers/**/*",
+    "query_answers/**/*",
+]
+
+[[bin]]
+name = "helixir-cli"
+path = "src/main.rs"
 
 [dependencies]
 clearscreen = "4.0.2"
@@ -10,3 +30,5 @@ serde = "1.0.219"
 tokio = { version = "1.46.1", features = ["macros", "rt"] }
 anyhow = "1.0.98"
 serde_json = "1.0.130"
+colored = "2.1"
+textwrap = "0.16"
