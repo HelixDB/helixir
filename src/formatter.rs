@@ -1,5 +1,5 @@
 use colored::*;
-use textwrap::{wrap, Options};
+use textwrap::{Options, wrap};
 
 pub struct HelixFormatter {
     #[allow(dead_code)]
@@ -33,19 +33,21 @@ impl HelixFormatter {
     }
     fn print_output_section(&self, messages: &[String]) {
         println!();
-        println!("{}", "OUTPUT".bright_yellow().bold());
-        println!("{}", "─".repeat(50).bright_yellow());
+        println!("{}", "OUTPUT".truecolor(238, 212, 159).bold());
+        println!("{}", "─".repeat(50).truecolor(238, 212, 159));
 
         for message in messages {
             if message.contains("[INCORRECT]") {
                 let colored_message = message.replace(
                     "[INCORRECT]",
-                    &"[INCORRECT]".bright_red().bold().to_string(),
+                    &"[INCORRECT]".truecolor(237, 135, 150).bold().to_string(),
                 );
                 println!("{}", colored_message);
             } else if message.contains("[ERROR]") {
-                let colored_message =
-                    message.replace("[ERROR]", &"[ERROR]".bright_red().bold().to_string());
+                let colored_message = message.replace(
+                    "[ERROR]",
+                    &"[ERROR]".truecolor(237, 135, 150).bold().to_string(),
+                );
                 println!("{}", colored_message);
             } else {
                 println!("{}", message);
@@ -60,9 +62,9 @@ impl HelixFormatter {
         let border = "═".repeat(border_length);
 
         println!();
-        println!("{}", border.bright_cyan().bold());
-        println!("{}", header_text.bright_white().bold());
-        println!("{}", border.bright_cyan().bold());
+        println!("{}", border.truecolor(145, 215, 227).bold());
+        println!("{}", header_text.truecolor(202, 211, 245).bold());
+        println!("{}", border.truecolor(145, 215, 227).bold());
         println!();
     }
     fn print_lesson_content(&self, content: &str) {
@@ -90,16 +92,16 @@ impl HelixFormatter {
             }
 
             if trimmed.starts_with("▶ ") {
-                println!("{}", trimmed.bright_blue().bold());
+                println!("{}", trimmed.truecolor(145, 215, 227).bold());
             } else if trimmed.starts_with("- ") {
                 let parts: Vec<&str> = trimmed.split("- ").collect();
                 if parts.len() > 1 {
-                    println!("- {}", parts[1].white());
+                    println!("- {}", parts[1].truecolor(202, 211, 245));
                 } else {
-                    println!("{}", trimmed.white());
+                    println!("{}", trimmed.truecolor(202, 211, 245));
                 }
             } else {
-                println!("{}", trimmed.bright_white());
+                println!("{}", trimmed.truecolor(202, 211, 245));
             }
         }
     }
@@ -159,29 +161,38 @@ impl HelixFormatter {
         ];
 
         for keyword in keywords {
-            result = result.replace(keyword, &keyword.bright_magenta().bold().to_string());
+            result = result.replace(
+                keyword,
+                &keyword.truecolor(198, 160, 246).bold().to_string(),
+            );
         }
 
         let schema_patterns = ["N::", "E::", "V::"];
         for pattern in schema_patterns {
-            result = result.replace(pattern, &pattern.bright_blue().bold().to_string());
+            result = result.replace(
+                pattern,
+                &pattern.truecolor(138, 173, 244).bold().to_string(),
+            );
         }
 
         let types = ["String", "I64", "U64", "F64", "ID"];
         for type_name in types {
-            result = result.replace(type_name, &type_name.bright_green().to_string());
+            result = result.replace(type_name, &type_name.truecolor(166, 218, 149).to_string());
         }
 
         let operators = ["::EQ", "::LT", "::GT", "::LTE", "::GTE", "::Out", "::In"];
         for op in operators {
-            result = result.replace(op, &op.bright_yellow().to_string());
+            result = result.replace(op, &op.truecolor(238, 212, 159).to_string());
         }
 
         if result.contains(".hx") {
-            result = result.replace(".hx", &".hx".bright_cyan().to_string());
+            result = result.replace(".hx", &".hx".truecolor(139, 213, 202).to_string());
         }
         if result.contains("helix ") {
-            result = result.replace("helix ", &"helix ".bright_red().bold().to_string());
+            result = result.replace(
+                "helix ",
+                &"helix ".truecolor(237, 135, 150).bold().to_string(),
+            );
         }
 
         result
@@ -277,7 +288,7 @@ impl HelixFormatter {
             if let Ok(regex) = regex::Regex::new(&pattern) {
                 if regex.is_match(&result) {
                     let placeholder = format!("__HIGHLIGHT_{}__", replacements.len());
-                    let highlighted = node_type.bright_yellow().bold().to_string();
+                    let highlighted = node_type.truecolor(238, 212, 159).bold().to_string();
                     replacements.push((placeholder.clone(), highlighted));
                     result = regex.replace_all(&result, &placeholder).to_string();
                 }
@@ -291,7 +302,7 @@ impl HelixFormatter {
             if let Some(end) = result[start + 2..].find("**") {
                 let end = end + start + 2;
                 let bold_text = &result[start + 2..end];
-                let formatted = bold_text.bright_white().bold().to_string();
+                let formatted = bold_text.truecolor(202, 211, 245).bold().to_string();
                 result.replace_range(start..end + 2, &formatted);
             } else {
                 break;
@@ -306,8 +317,8 @@ impl HelixFormatter {
             return;
         }
 
-        println!("{}", "HINTS".bright_yellow().bold());
-        println!("{}", "─".repeat(20).bright_yellow());
+        println!("{}", "HINTS".truecolor(238, 212, 159).bold());
+        println!("{}", "─".repeat(20).truecolor(238, 212, 159));
 
         for (i, hint) in hints.iter().enumerate() {
             let hint_number = format!("{}.", i + 1);
@@ -317,14 +328,18 @@ impl HelixFormatter {
                 self.parse_markdown(hint)
             };
 
-            println!("{} {}", hint_number.bright_yellow().bold(), formatted_hint);
+            println!(
+                "{} {}",
+                hint_number.truecolor(238, 212, 159).bold(),
+                formatted_hint
+            );
         }
         println!();
     }
 
     fn print_commands(&self) {
-        println!("{}", "COMMANDS".bright_green().bold());
-        println!("{}", "─".repeat(20).bright_green());
+        println!("{}", "COMMANDS".truecolor(166, 218, 149).bold());
+        println!("{}", "─".repeat(20).truecolor(166, 218, 149));
 
         let commands = [
             ("n", "next", "Continue to next lesson"),
@@ -340,9 +355,9 @@ impl HelixFormatter {
         for (key, cmd, desc) in commands {
             println!(
                 "{} {} - {}",
-                format!("({})", key).bright_green().bold(),
-                cmd.bright_white().bold(),
-                desc.white()
+                format!("({})", key).truecolor(166, 218, 149).bold(),
+                cmd.truecolor(202, 211, 245).bold(),
+                desc.truecolor(184, 192, 224)
             );
         }
         println!();
@@ -354,9 +369,13 @@ impl HelixFormatter {
         println!();
         println!(
             "{}",
-            "A rustling-styled interactive learning tool for\nmastering helix-db from 0 to hero!"
-                .bright_white()
+            "  [ A rustling-styled interactive learning tool for"
+                .truecolor(184, 192, 224)
                 .bold()
+        );
+        println!(
+            "{}",
+            "  mastering helix-db ]".truecolor(184, 192, 224).bold()
         );
     }
 
@@ -371,32 +390,32 @@ impl HelixFormatter {
         ];
 
         for line in helix_lines {
-            println!("{}", line.bright_magenta().bold());
+            println!("  {}", line.truecolor(198, 160, 246).bold());
         }
     }
 
     pub fn display_validation_result(&self, is_correct: bool, message: &str) {
         println!();
         if is_correct {
-            println!("{}", "[CORRECT]".bright_green().bold());
-            println!("{}", message.bright_white());
+            println!("{}", "[CORRECT]".truecolor(166, 218, 149).bold());
+            println!("{}", message.truecolor(202, 211, 245));
         } else {
-            println!("{}", "[INCORRECT]".bright_red().bold());
-            println!("{}", message.bright_red());
+            println!("{}", "[INCORRECT]".truecolor(237, 135, 150).bold());
+            println!("{}", message.truecolor(237, 135, 150));
         }
         println!();
     }
 
     pub fn display_error(&self, error: &str) {
         println!();
-        println!("{}", "[ERROR]".bright_red().bold());
-        println!("{}", error.bright_red());
+        println!("{}", "[ERROR]".truecolor(237, 135, 150).bold());
+        println!("{}", error.truecolor(237, 135, 150));
         println!();
     }
 
     pub fn display_info(&self, message: &str) {
         println!();
-        println!("{}", message.bright_blue());
+        println!("{}", message.truecolor(138, 173, 244));
         println!();
     }
 }

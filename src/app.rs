@@ -1,11 +1,12 @@
+use crate::Lesson;
 use crate::formatter::HelixFormatter;
 use crate::lessons::get_lesson;
 use crate::ui::{clear_screen, display_lesson, get_user_input};
 use crate::validation::{
-    check_helix_init, get_completed_lessons, get_current_lesson, get_instance_id, mark_lesson_completed,
-    redeploy_instance, save_current_lesson, save_instance_id, ParsedQueries, ParsedSchema, QueryValidator,
+    ParsedQueries, ParsedSchema, QueryValidator, check_helix_init, get_completed_lessons,
+    get_current_lesson, get_instance_id, mark_lesson_completed, redeploy_instance,
+    save_current_lesson, save_instance_id,
 };
-use crate::Lesson;
 use colored::*;
 use std::collections::HashMap;
 use std::process::Command;
@@ -123,7 +124,6 @@ impl App {
             }
         }
 
-
         match trimmed.to_lowercase().as_str() {
             "c" => Ok(MenuAction::Check),
             "h" => Ok(MenuAction::Help),
@@ -149,7 +149,6 @@ impl App {
         }
     }
 
-    
     async fn handle_action(&mut self, action: MenuAction) -> ActionResult {
         match action {
             MenuAction::Back => {
@@ -169,10 +168,11 @@ impl App {
                 let _lesson = get_lesson(self.current_lesson);
 
                 if self.current_lesson >= 5 {
-                    let expected_hql = self.get_lesson_answers(self.current_lesson as u32)
+                    let expected_hql = self
+                        .get_lesson_answers(self.current_lesson as u32)
                         .map(|answers| answers.hql_answer.as_str())
                         .expect("Lesson HQL data should be compiled into binary");
-                    
+
                     match (
                         ParsedQueries::from_file("helixdb-cfg/queries.hx"),
                         ParsedQueries::from_string(expected_hql),
@@ -210,28 +210,36 @@ impl App {
 
                             if self.current_lesson >= 5 {
                                 let instance_id = get_instance_id();
-                                if instance_id.is_none() || instance_id.as_ref().unwrap().is_empty() {
-                                        println!("Please run helix deploy in a seperate terminal and copy paste your instance ID here so we can use it for future lessons:");
-                                        use std::io::{self, Write};
-                                        print!("Instance ID: ");
-                                        io::stdout().flush().unwrap();
-                                        let mut input = String::new();
-                                        io::stdin().read_line(&mut input).unwrap();
-                                        let new_instance_id = input.trim().to_string();
-                                        
-                                        if new_instance_id.is_empty() {
-                                            self.add_output("[ERROR] Instance ID cannot be empty".to_string());
-                                            return ActionResult::Continue;
-                                        }
-                                        
-                                        if let Err(e) = save_instance_id(&new_instance_id) {
-                                            self.add_output(format!("[ERROR] Failed to save instance ID: {}", e));
-                                            return ActionResult::Continue;
-                                        }
-                                        
-                                        self.add_output("Instance ID saved successfully!".to_string());
-                                        self.clear_output();
+                                if instance_id.is_none() || instance_id.as_ref().unwrap().is_empty()
+                                {
+                                    println!(
+                                        "Please run helix deploy in a seperate terminal and copy paste your instance ID here so we can use it for future lessons:"
+                                    );
+                                    use std::io::{self, Write};
+                                    print!("Instance ID: ");
+                                    io::stdout().flush().unwrap();
+                                    let mut input = String::new();
+                                    io::stdin().read_line(&mut input).unwrap();
+                                    let new_instance_id = input.trim().to_string();
+
+                                    if new_instance_id.is_empty() {
+                                        self.add_output(
+                                            "[ERROR] Instance ID cannot be empty".to_string(),
+                                        );
+                                        return ActionResult::Continue;
                                     }
+
+                                    if let Err(e) = save_instance_id(&new_instance_id) {
+                                        self.add_output(format!(
+                                            "[ERROR] Failed to save instance ID: {}",
+                                            e
+                                        ));
+                                        return ActionResult::Continue;
+                                    }
+
+                                    self.add_output("Instance ID saved successfully!".to_string());
+                                    self.clear_output();
+                                }
                             }
                         }
                         (Err(e), _) => {
@@ -263,11 +271,11 @@ impl App {
                         self.add_output("Running database queries...".to_string());
                     }
 
-                    let lesson_data = self.get_lesson_answers(self.current_lesson as u32)
+                    let lesson_data = self
+                        .get_lesson_answers(self.current_lesson as u32)
                         .map(|answers| &answers.query_answer)
                         .expect("Lesson answer data should be compiled into binary");
-                    let lesson_json: serde_json::Value =
-                        serde_json::from_str(lesson_data).unwrap();
+                    let lesson_json: serde_json::Value = serde_json::from_str(lesson_data).unwrap();
 
                     let queries = lesson_json["queries"].as_array().unwrap();
                     for (index, query_test) in queries.iter().enumerate() {
@@ -318,12 +326,13 @@ impl App {
                     self.add_output("[CORRECT] Lesson completed! Great job!".to_string());
                     return ActionResult::Continue;
                 }
-                        
+
                 if self.current_lesson >= 1 && self.current_lesson <= 4 {
-                    let expected_hql = self.get_lesson_answers(self.current_lesson as u32)
+                    let expected_hql = self
+                        .get_lesson_answers(self.current_lesson as u32)
                         .map(|answers| answers.hql_answer.as_str())
                         .expect("Lesson HQL data should be compiled into binary");
-                    
+
                     match (
                         ParsedSchema::from_file("helixdb-cfg/schema.hx"),
                         ParsedSchema::from_string(expected_hql),
@@ -604,7 +613,8 @@ impl App {
                     continue;
                 }
 
-                let lesson_data = self.get_lesson_answers(lesson_id as u32)
+                let lesson_data = self
+                    .get_lesson_answers(lesson_id as u32)
                     .map(|answers| answers.query_answer.clone())
                     .unwrap_or_else(|| {
                         self.formatter.display_error(&format!(
@@ -613,7 +623,7 @@ impl App {
                         ));
                         String::new()
                     });
-                
+
                 if lesson_data.is_empty() {
                     continue;
                 }
@@ -664,39 +674,52 @@ impl App {
     fn show_welcome_menu(&self, has_progress: bool) {
         println!();
         if has_progress {
-            println!("{}", "What would you like to do?".bright_white().bold());
+            println!(
+                "{}",
+                "  What would you like to do?"
+                    .truecolor(202, 211, 245)
+                    .bold()
+            );
             println!();
             println!(
                 "{} {}",
-                "1)".bright_green().bold(),
-                format!("Resume from lesson {}", self.current_lesson).white()
+                "  1)".truecolor(166, 218, 149).bold(),
+                format!("Resume from lesson {}", self.current_lesson).truecolor(184, 192, 224)
             );
             println!(
                 "{} {}",
-                "2)".bright_green().bold(),
-                "Go to specific lesson".white()
+                "  2)".truecolor(166, 218, 149).bold(),
+                "Go to specific lesson".truecolor(184, 192, 224)
             );
             println!(
                 "{} {}",
-                "3)".bright_green().bold(),
-                "Start from beginning".white()
+                "  3)".truecolor(166, 218, 149).bold(),
+                "Start from beginning".truecolor(184, 192, 224)
             );
         } else {
-            println!("{}", "What would you like to do?".bright_white().bold());
+            println!(
+                "{}",
+                "  What would you like to do?"
+                    .truecolor(202, 211, 245)
+                    .bold()
+            );
             println!();
             println!(
                 "{} {}",
-                "1)".bright_green().bold(),
-                "Get started (Lesson 0)".white()
+                "  1)".truecolor(166, 218, 149).bold(),
+                "Get started (Lesson 0)".truecolor(184, 192, 224)
             );
             println!(
                 "{} {}",
-                "2)".bright_green().bold(),
-                "Go to specific lesson".white()
+                "  2)".truecolor(166, 218, 149).bold(),
+                "Go to specific lesson".truecolor(184, 192, 224)
             );
         }
         println!();
-        print!("{}", "Enter your choice: ".bright_yellow());
+        print!(
+            "{}",
+            "  Enter your choice: ".truecolor(184, 192, 224).bold()
+        );
     }
     fn get_welcome_input(&self) -> String {
         use std::io::{self, Write};
