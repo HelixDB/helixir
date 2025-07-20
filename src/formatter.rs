@@ -273,11 +273,14 @@ impl HelixFormatter {
             "getCountryByCityCnt",
             "searchDescriptions",
         ] {
-            if result.contains(node_type) {
-                let placeholder = format!("__HIGHLIGHT_{}__", replacements.len());
-                let highlighted = node_type.bright_yellow().bold().to_string();
-                replacements.push((placeholder.clone(), highlighted));
-                result = result.replace(node_type, &placeholder);
+            let pattern = format!(r"\b{}\b", regex::escape(node_type));
+            if let Ok(regex) = regex::Regex::new(&pattern) {
+                if regex.is_match(&result) {
+                    let placeholder = format!("__HIGHLIGHT_{}__", replacements.len());
+                    let highlighted = node_type.bright_yellow().bold().to_string();
+                    replacements.push((placeholder.clone(), highlighted));
+                    result = regex.replace_all(&result, &placeholder).to_string();
+                }
             }
         }
 

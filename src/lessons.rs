@@ -29,7 +29,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
         2 => Lesson {
             id: 2,
             title: "Adding in Edges".into(),
-            instructions: "Now that you know what type of nodes are in your schema, you will define the relationships between those nodes.\n\nFor this example, there is a hierarchical pattern:\n- A **of city** is in a **country**\n- A **country** is in a **continent**\n\nCreate a Continent_to_Country and Country_to_City edge connecting their respective nodes with no properties in **schema.hx**".into(),
+            instructions: "Now that you know what type of nodes are in your schema, you will define the relationships between those nodes.\n\nFor this example, there is a hierarchical pattern:\n- A **city** is in a **country**\n- A **country** is in a **continent**\n\nCreate a Continent_to_Country and Country_to_City edge connecting their respective nodes with no properties in **schema.hx**".into(),
             hints: vec!["Use E:: for edges".into()],
             query_name: None,
         },
@@ -100,8 +100,8 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
         12 => Lesson {
             id: 12,
             title: "Get Node Properties".into(),
-            instructions: "Sometimes you don't need the full node, just a few specific properties. For example, you can display only the names and populations of countries without pulling in the entire object. In this case, you can use property selection syntax to retrieve just the fields you care about. This allows for more efficient querying and cleaner data handling when building visualizations or summaries.\n\nWrite a query (**getCountryNames**) to get each country's **name** and **population**\n\n**Query Parameters:** (no parameters)".into(),
-            hints: vec!["Add this header into your query.hx: QUERY getCountryNames () =>".into(), "Use property selection syntax ::={name, population}".into()],
+            instructions: "Sometimes you don't need the full node, just a few specific properties. For example, you can display only the names of countries without pulling in the entire object. In this case, you can use property selection syntax to retrieve just the fields you care about. This allows for more efficient querying and cleaner data handling when building visualizations or summaries.\n\nWrite a query (**getCountryNames**) to get each country's **name**\n\n**Query Parameters:** (no parameters)".into(),
+            hints: vec!["Add this header into your query.hx: QUERY getCountryNames () =>".into(), "Use property selection syntax ::={name}".into()],
             query_name: Some(vec!["getCountryNames".into()]),
         },
         13 => Lesson {
