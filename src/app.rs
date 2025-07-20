@@ -7,9 +7,8 @@ use crate::validation::{
 };
 use crate::Lesson;
 use colored::*;
-use macros::parse_answers;
 use std::collections::HashMap;
-use std::{fs, process::Command};
+use std::process::Command;
 
 pub enum ActionResult {
     Continue,
@@ -50,6 +49,10 @@ impl App {
             formatter: HelixFormatter::new(),
             output_messages: Vec::new(),
         }
+    }
+
+    pub fn get_lesson_answers(&self, lesson_number: u32) -> Option<&Lesson> {
+        self.lessons.get(&lesson_number)
     }
 
     pub fn initialize(&mut self) {
@@ -162,48 +165,51 @@ impl App {
             }
             MenuAction::Check => {
                 clear_screen();
-                let lesson = get_lesson(self.current_lesson);
+                let _lesson = get_lesson(self.current_lesson);
 
-                if let Some(query_answer_path) = &lesson.query_answer {
-                    if let Some(expected_query_file) = &lesson.query_answer_file {
-                        match (
-                            ParsedQueries::from_file("helixdb-cfg/queries.hx"),
-                            ParsedQueries::from_file(expected_query_file),
-                        ) {
-                            (Ok(user_queries), Ok(expected_queries)) => {
-                                let validation_result =
-                                    user_queries.validate_against(&expected_queries);
+                if self.current_lesson >= 5 {
+                    let expected_hql = self.get_lesson_answers(self.current_lesson as u32)
+                        .map(|answers| answers.hql_answer.as_str())
+                        .expect("Lesson HQL data should be compiled into binary");
+                    
+                    match (
+                        ParsedQueries::from_file("helixdb-cfg/queries.hx"),
+                        ParsedQueries::from_string(expected_hql),
+                    ) {
+                        (Ok(user_queries), Ok(expected_queries)) => {
+                            let validation_result =
+                                user_queries.validate_against(&expected_queries);
 
-                                if !validation_result.is_correct {
-                                    self.add_output("[INCORRECT] Query validation failed. Please fix your queries.hx file".to_string());
+                            if !validation_result.is_correct {
+                                self.add_output("[INCORRECT] Query validation failed. Please fix your queries.hx file".to_string());
 
-                                    if !validation_result.missing_queries.is_empty() {
-                                        self.add_output(format!(
-                                            "[ERROR] Missing queries: {:?}",
-                                            validation_result.missing_queries
-                                        ));
-                                    }
-                                    if !validation_result.extra_queries.is_empty() {
-                                        self.add_output(format!(
-                                            "[ERROR] Extra queries: {:?}",
-                                            validation_result.extra_queries
-                                        ));
-                                    }
-                                    for (query_name, error) in &validation_result.query_errors {
-                                        self.add_output(format!(
-                                            "[ERROR] Query '{}': {}",
-                                            query_name, error
-                                        ));
-                                    }
-                                    return ActionResult::Continue;
+                                if !validation_result.missing_queries.is_empty() {
+                                    self.add_output(format!(
+                                        "[ERROR] Missing queries: {:?}",
+                                        validation_result.missing_queries
+                                    ));
                                 }
-                                self.add_output(
-                                    "[CORRECT] Query structure validation passed".to_string(),
-                                );
+                                if !validation_result.extra_queries.is_empty() {
+                                    self.add_output(format!(
+                                        "[ERROR] Extra queries: {:?}",
+                                        validation_result.extra_queries
+                                    ));
+                                }
+                                for (query_name, error) in &validation_result.query_errors {
+                                    self.add_output(format!(
+                                        "[ERROR] Query '{}': {}",
+                                        query_name, error
+                                    ));
+                                }
+                                return ActionResult::Continue;
+                            }
+                            self.add_output(
+                                "[CORRECT] Query structure validation passed".to_string(),
+                            );
 
-                                if self.current_lesson >= 5 {
-                                    let instance_id = get_instance_id();
-                                    if instance_id.is_none() || instance_id.as_ref().unwrap().is_empty() {
+                            if self.current_lesson >= 5 {
+                                let instance_id = get_instance_id();
+                                if instance_id.is_none() || instance_id.as_ref().unwrap().is_empty() {
                                         println!("Please run helix deploy in a seperate terminal and copy paste your instance ID here so we can use it for future lessons:");
                                         use std::io::{self, Write};
                                         print!("Instance ID: ");
@@ -225,22 +231,21 @@ impl App {
                                         self.add_output("Instance ID saved successfully!".to_string());
                                         self.clear_output();
                                     }
-                                }
                             }
-                            (Err(e), _) => {
-                                self.add_output(format!(
-                                    "[ERROR] Could not parse your queries.hx file: {}",
-                                    e
-                                ));
-                                return ActionResult::Continue;
-                            }
-                            (_, Err(e)) => {
-                                self.add_output(format!(
-                                    "[ERROR] Could not parse expected queries file: {}",
-                                    e
-                                ));
-                                return ActionResult::Continue;
-                            }
+                        }
+                        (Err(e), _) => {
+                            self.add_output(format!(
+                                "[ERROR] Could not parse your queries.hx file: {}",
+                                e
+                            ));
+                            return ActionResult::Continue;
+                        }
+                        (_, Err(e)) => {
+                            self.add_output(format!(
+                                "[ERROR] Could not parse expected queries file: {}",
+                                e
+                            ));
+                            return ActionResult::Continue;
                         }
                     }
 
@@ -257,9 +262,11 @@ impl App {
                         self.add_output("Running database queries...".to_string());
                     }
 
-                    let lesson_data = fs::read_to_string(query_answer_path).unwrap();
+                    let lesson_data = self.get_lesson_answers(self.current_lesson as u32)
+                        .map(|answers| &answers.query_answer)
+                        .expect("Lesson answer data should be compiled into binary");
                     let lesson_json: serde_json::Value =
-                        serde_json::from_str(&lesson_data).unwrap();
+                        serde_json::from_str(lesson_data).unwrap();
 
                     let queries = lesson_json["queries"].as_array().unwrap();
                     for (index, query_test) in queries.iter().enumerate() {
@@ -310,10 +317,15 @@ impl App {
                     self.add_output("[CORRECT] Lesson completed! Great job!".to_string());
                     return ActionResult::Continue;
                 }
-                if let Some(expected_path) = &lesson.schema_answer {
+                        
+                if self.current_lesson >= 1 && self.current_lesson <= 4 {
+                    let expected_hql = self.get_lesson_answers(self.current_lesson as u32)
+                        .map(|answers| answers.hql_answer.as_str())
+                        .expect("Lesson HQL data should be compiled into binary");
+                    
                     match (
                         ParsedSchema::from_file("helixdb-cfg/schema.hx"),
-                        ParsedSchema::from_file(expected_path),
+                        ParsedSchema::from_string(expected_hql),
                     ) {
                         (Ok(user_schema), Ok(expected_schema)) => {
                             let result = user_schema.validate_answer(&expected_schema);
@@ -577,30 +589,33 @@ impl App {
         for lesson_id in 0..self.current_lesson {
             let lesson = get_lesson(lesson_id);
 
-            if lesson.query_answer.is_none() {
+            if lesson_id < 5 {
                 continue;
             }
 
             self.formatter
                 .display_info(&format!("Running lesson {}: {}", lesson_id, lesson.title));
 
-            if let Some(query_answer_path) = &lesson.query_answer {
+            if lesson_id >= 5 {
                 if !redeploy_instance() {
                     self.formatter
                         .display_error(&format!("Failed to compile for lesson {}", lesson_id));
                     continue;
                 }
 
-                let lesson_data = match fs::read_to_string(query_answer_path) {
-                    Ok(data) => data,
-                    Err(e) => {
+                let lesson_data = self.get_lesson_answers(lesson_id as u32)
+                    .map(|answers| answers.query_answer.clone())
+                    .unwrap_or_else(|| {
                         self.formatter.display_error(&format!(
-                            "Could not read lesson {} queries: {}",
-                            lesson_id, e
+                            "No compiled lesson data found for lesson {}",
+                            lesson_id
                         ));
-                        continue;
-                    }
-                };
+                        String::new()
+                    });
+                
+                if lesson_data.is_empty() {
+                    continue;
+                }
 
                 let lesson_json: serde_json::Value = match serde_json::from_str(&lesson_data) {
                     Ok(json) => json,

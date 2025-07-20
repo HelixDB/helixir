@@ -13,6 +13,7 @@ enum EntityType {
 }
 
 impl EntityType {
+    #[allow(dead_code)]
     fn storage_key(&self) -> &'static str {
         match self {
             Self::Continent => "continents",
@@ -21,6 +22,7 @@ impl EntityType {
         }
     }
 
+    #[allow(dead_code)]
     fn dependency_error(&self) -> &'static str {
         match self {
             Self::Continent => "No continent found. Please run lesson 5 first to create a continent.",
@@ -29,6 +31,7 @@ impl EntityType {
         }
     }
 
+    #[allow(dead_code)]
     fn id_field(&self) -> &'static str {
         match self {
             Self::Continent => "continent_id",
@@ -41,7 +44,7 @@ impl EntityType {
 impl QueryValidator {
     pub fn new() -> Self {
         Self {
-            client: HelixDB::new(None, None),
+            client: HelixDB::new(Some("http://localhost:6969"), None),
         }
     }
 

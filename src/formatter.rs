@@ -218,7 +218,7 @@ impl HelixFormatter {
     fn parse_markdown(&self, text: &str) -> String {
         let mut result = text.to_string();
         let mut replacements = Vec::new();
-        
+
         for node_type in &[
             "Country_to_Capital",
             "getCountryNames",
@@ -235,11 +235,11 @@ impl HelixFormatter {
             "createCountry",
             "createCity",
             "Continent_to_Country",
-            "Country_to_City", 
+            "Country_to_City",
             "CityDescription",
             "City_to_Embedding",
             "Continent",
-            "Country", 
+            "Country",
             "City",
             "city",
             "country",
@@ -247,7 +247,31 @@ impl HelixFormatter {
             "vector",
             "AddN",
             "AddE",
-            "AddV"
+            "AddV",
+            "countCapitals",
+            "updateDescription",
+            "deleteCity",
+            "getCapital",
+            "getCountriesByGdp",
+            "getCountriesWithCapitals",
+            "deleteCountry",
+            "getContinent",
+            "getCountriesByCurrency",
+            "getContinentCities",
+            "getCitiesInCountry",
+            "updatePopGdp",
+            "getCity",
+            "getCountriesByCurrPop",
+            "setCapital",
+            "updateCurrency",
+            "getCountry",
+            "getCountriesByPopulation",
+            "deleteCapital",
+            "embedDescription",
+            "updateCapital",
+            "getCountriesByPopGdp",
+            "getCountryByCityCnt",
+            "searchDescriptions",
         ] {
             if result.contains(node_type) {
                 let placeholder = format!("__HIGHLIGHT_{}__", replacements.len());
@@ -256,7 +280,7 @@ impl HelixFormatter {
                 result = result.replace(node_type, &placeholder);
             }
         }
-        
+
         for (placeholder, highlighted) in replacements {
             result = result.replace(&placeholder, &highlighted);
         }

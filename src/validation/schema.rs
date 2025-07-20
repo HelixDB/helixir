@@ -13,6 +13,10 @@ impl ParsedSchema {
         Self::parse(&content)
     }
 
+    pub fn from_string(content: &str) -> Result<Self, String> {
+        Self::parse(content)
+    }
+
     fn parse(content: &str) -> Result<Self, String> {
         let mut nodes = HashMap::new();
         let mut edges = HashMap::new();

@@ -12,6 +12,10 @@ impl ParsedQueries {
         Self::parse(&content)
     }
 
+    pub fn from_string(content: &str) -> Result<Self, String> {
+        Self::parse(content)
+    }
+
     fn parse(content: &str) -> Result<Self, String> {
         let mut queries = HashMap::new();
         let lines: Vec<&str> = content.lines().collect();
