@@ -5,7 +5,8 @@ An interactive command-line tutorial for learning [HelixDB](https://helix-db.com
 ## Installation
 
 ```bash
-cargo run
+cargo install helixir
+helixir
 ```
 
 Follow the on-screen instructions to progress through the lessons.
