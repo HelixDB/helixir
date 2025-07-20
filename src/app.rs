@@ -38,9 +38,7 @@ pub struct App {
 
 impl App {
     pub fn new(lessons: HashMap<u32, Lesson>) -> Self {
-        let max_lessons = std::fs::read_dir("lesson_answers")
-            .map(|entries| entries.count())
-            .unwrap_or(0);
+        let max_lessons = 24;
 
         Self {
             lessons,
@@ -113,11 +111,14 @@ impl App {
                 Ok(result) => {
                     if result.status.success() {
                         return Ok(MenuAction::Check);
+                    } else {
+                        println!("Helix init command completed, but check if it was successful.");
+                        return Ok(MenuAction::Check);
                     }
                 }
                 Err(_) => {
-                    println!("Error: Could not run 'helix check'. Make sure HelixDB is installed.");
-                    return Err("helix init failed".to_string());
+                    println!("Please install helix-db and it's CLI");
+                    return Err("helix init failed - HelixDB CLI not installed".to_string());
                 }
             }
         }
