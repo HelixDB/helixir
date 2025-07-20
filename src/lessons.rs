@@ -1,4 +1,4 @@
-use std::vec;
+use std::{collections::HashMap, vec};
 
 #[derive(Debug)]
 pub struct Lesson {

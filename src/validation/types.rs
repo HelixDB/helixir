@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use helix_db::HelixDB;
+use helix_rs::HelixDB;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Property {

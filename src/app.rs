@@ -5,7 +5,10 @@ use crate::validation::{
     check_helix_init, get_completed_lessons, get_current_lesson, get_instance_id, mark_lesson_completed,
     redeploy_instance, save_current_lesson, save_instance_id, ParsedQueries, ParsedSchema, QueryValidator,
 };
+use crate::Lesson;
 use colored::*;
+use macros::parse_answers;
+use std::collections::HashMap;
 use std::{fs, process::Command};
 
 pub enum ActionResult {
@@ -26,6 +29,8 @@ pub enum MenuAction {
 }
 
 pub struct App {
+    /// In the format of `lesson_number: { query_answer: String, hql_answer: String }`
+    lessons: HashMap<u32, Lesson>,
     current_lesson: usize,
     max_lessons: usize,
     formatter: HelixFormatter,
@@ -33,12 +38,13 @@ pub struct App {
 }
 
 impl App {
-    pub fn new() -> Self {
+    pub fn new(lessons: HashMap<u32, Lesson>) -> Self {
         let max_lessons = std::fs::read_dir("lesson_answers")
             .map(|entries| entries.count())
             .unwrap_or(0);
 
         Self {
+            lessons,
             current_lesson: 0,
             max_lessons,
             formatter: HelixFormatter::new(),
@@ -139,6 +145,7 @@ impl App {
         }
     }
 
+    
     async fn handle_action(&mut self, action: MenuAction) -> ActionResult {
         match action {
             MenuAction::Back => {

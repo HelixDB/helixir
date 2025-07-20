@@ -6,8 +6,10 @@ mod ui;
 mod validation;
 
 use app::App;
+use macros::parse_answers;
 
+#[parse_answers]
 fn main() {
-    let mut app = App::new();
+    let mut app = App::new(lessons);
     app.run();
 }

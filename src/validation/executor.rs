@@ -1,6 +1,6 @@
 use crate::lesson_types::*;
 use crate::validation::{QueryValidator, get_latest_entity_id, save_created_entity, load_instance_data};
-use helix_db::{HelixDB, HelixDBClient};
+use helix_rs::{HelixDB, HelixDBClient};
 use serde_json::json;
 use serde::{Serialize, de::DeserializeOwned};
 use std::collections::HashMap;
