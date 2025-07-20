@@ -4,20 +4,11 @@ version = "0.1.0"
 edition = "2021"
 description = "Interactive CLI tutorial for learning HelixDB"
 license = "MIT"
-readme = "../README.md"
+readme = "./README.md"
 repository = "https://github.com/HelixDB/helixir"
 keywords = ["database", "graph", "tutorial", "helix", "cli"]
 categories = ["command-line-utilities", "database", "education"]
-
-# Include the lesson files in the published package
-include = [
-    "src/**/*",
-    "Cargo.toml",
-    "../README.md",
-    "../LICENSE",
-    "lesson_answers/**/*",
-    "query_answers/**/*",
-]
+authors = ["Putt <putt@helix-db.com>", "HelixDB <founders@helix-db.com>"]
 
 [[bin]]
 name = "helixir"
