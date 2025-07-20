@@ -6,7 +6,22 @@
                 "num_cities": 1
             },
             "expected_output": {
-                "countries": []
+                "countries": [
+                    {
+                        "id": "uk_country_id",
+                        "name": "United Kingdom",
+                        "currency": "GBP",
+                        "population": 67500000,
+                        "gdp": 3131.0
+                    },
+                    {
+                        "id": "de_country_id",
+                        "name": "Germany",
+                        "currency": "EUR",
+                        "population": 83000000,
+                        "gdp": 3979.0
+                    }
+                ]
             }
         }
     ]

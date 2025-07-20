@@ -3,9 +3,9 @@ name = "helixir-cli"
 version = "0.1.0"
 edition = "2021"
 description = "Interactive CLI tutorial for learning HelixDB"
-license = "MIT"
-readme = "README.md"
-repository = "https://github.com/PUTT/helixir/helixir-cli"
+license = ""
+readme = "../README.md"
+repository = "https://github.com/HelixDB/helixir"
 keywords = ["database", "graph", "tutorial", "helix", "cli"]
 categories = ["command-line-utilities", "database", "education"]
 
@@ -13,8 +13,8 @@ categories = ["command-line-utilities", "database", "education"]
 include = [
     "src/**/*",
     "Cargo.toml",
-    "README.md",
-    "LICENSE",
+    "../README.md",
+    "../LICENSE",
     "lesson_answers/**/*",
     "query_answers/**/*",
 ]

@@ -66,7 +66,7 @@ QUERY getCapital (country_id: ID) =>
     RETURN capital
 
 QUERY getCountryNames () =>
-    countries <- N<Country>::{name, population}
+    countries <- N<Country>::{name}
     RETURN countries
 
 QUERY getContinentByName (continent_name: String) =>

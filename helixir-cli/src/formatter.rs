@@ -1,5 +1,5 @@
 use colored::*;
-use textwrap::{Options, wrap};
+use textwrap::{wrap, Options};
 
 pub struct HelixFormatter {
     #[allow(dead_code)]
@@ -37,7 +37,19 @@ impl HelixFormatter {
         println!("{}", "─".repeat(50).bright_yellow());
 
         for message in messages {
-            println!("{}", message);
+            if message.contains("[INCORRECT]") {
+                let colored_message = message.replace(
+                    "[INCORRECT]",
+                    &"[INCORRECT]".bright_red().bold().to_string(),
+                );
+                println!("{}", colored_message);
+            } else if message.contains("[ERROR]") {
+                let colored_message =
+                    message.replace("[ERROR]", &"[ERROR]".bright_red().bold().to_string());
+                println!("{}", colored_message);
+            } else {
+                println!("{}", message);
+            }
         }
         println!();
     }
@@ -80,9 +92,14 @@ impl HelixFormatter {
             if trimmed.starts_with("▶ ") {
                 println!("{}", trimmed.bright_blue().bold());
             } else if trimmed.starts_with("- ") {
-                println!("{}", trimmed.bright_yellow());
+                let parts: Vec<&str> = trimmed.split("- ").collect();
+                if parts.len() > 1 {
+                    println!("- {}", parts[1].white());
+                } else {
+                    println!("{}", trimmed.white());
+                }
             } else {
-                println!("{}", trimmed.white());
+                println!("{}", trimmed.bright_white());
             }
         }
     }
@@ -200,7 +217,49 @@ impl HelixFormatter {
 
     fn parse_markdown(&self, text: &str) -> String {
         let mut result = text.to_string();
-
+        let mut replacements = Vec::new();
+        
+        for node_type in &[
+            "Country_to_Capital",
+            "getCountryNames",
+            "getContinentByName",
+            "getCountryByName",
+            "getCityByName",
+            "getAllContinents",
+            "getAllCities",
+            "getCountriesInContinent",
+            "getCitiesInContinent",
+            "Out",
+            "getAllCountries",
+            "createContinent",
+            "createCountry",
+            "createCity",
+            "Continent_to_Country",
+            "Country_to_City", 
+            "CityDescription",
+            "City_to_Embedding",
+            "Continent",
+            "Country", 
+            "City",
+            "city",
+            "country",
+            "continent",
+            "vector",
+            "AddN",
+            "AddE",
+            "AddV"
+        ] {
+            if result.contains(node_type) {
+                let placeholder = format!("__HIGHLIGHT_{}__", replacements.len());
+                let highlighted = node_type.bright_yellow().bold().to_string();
+                replacements.push((placeholder.clone(), highlighted));
+                result = result.replace(node_type, &placeholder);
+            }
+        }
+        
+        for (placeholder, highlighted) in replacements {
+            result = result.replace(&placeholder, &highlighted);
+        }
         while let Some(start) = result.find("**") {
             if let Some(end) = result[start + 2..].find("**") {
                 let end = end + start + 2;

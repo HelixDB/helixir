@@ -2,9 +2,8 @@ use crate::formatter::HelixFormatter;
 use crate::lessons::get_lesson;
 use crate::ui::{clear_screen, display_lesson, get_user_input};
 use crate::validation::{
-    ParsedQueries, ParsedSchema, QueryValidator, check_helix_init, get_completed_lessons,
-    get_current_lesson, get_or_prompt_instance_id, mark_lesson_completed, redeploy_instance,
-    save_current_lesson,
+    check_helix_init, get_completed_lessons, get_current_lesson, get_instance_id, mark_lesson_completed,
+    redeploy_instance, save_current_lesson, save_instance_id, ParsedQueries, ParsedSchema, QueryValidator,
 };
 use colored::*;
 use std::{fs, process::Command};
@@ -113,6 +112,8 @@ impl App {
                 }
             }
         }
+
+
         match trimmed.to_lowercase().as_str() {
             "c" => Ok(MenuAction::Check),
             "h" => Ok(MenuAction::Help),
@@ -192,6 +193,32 @@ impl App {
                                 self.add_output(
                                     "[CORRECT] Query structure validation passed".to_string(),
                                 );
+
+                                if self.current_lesson >= 5 {
+                                    let instance_id = get_instance_id();
+                                    if instance_id.is_none() || instance_id.as_ref().unwrap().is_empty() {
+                                        println!("Please run helix deploy in a seperate terminal and copy paste your instance ID here so we can use it for future lessons:");
+                                        use std::io::{self, Write};
+                                        print!("Instance ID: ");
+                                        io::stdout().flush().unwrap();
+                                        let mut input = String::new();
+                                        io::stdin().read_line(&mut input).unwrap();
+                                        let new_instance_id = input.trim().to_string();
+                                        
+                                        if new_instance_id.is_empty() {
+                                            self.add_output("[ERROR] Instance ID cannot be empty".to_string());
+                                            return ActionResult::Continue;
+                                        }
+                                        
+                                        if let Err(e) = save_instance_id(&new_instance_id) {
+                                            self.add_output(format!("[ERROR] Failed to save instance ID: {}", e));
+                                            return ActionResult::Continue;
+                                        }
+                                        
+                                        self.add_output("Instance ID saved successfully!".to_string());
+                                        self.clear_output();
+                                    }
+                                }
                             }
                             (Err(e), _) => {
                                 self.add_output(format!(
@@ -210,92 +237,71 @@ impl App {
                         }
                     }
 
-                    match get_or_prompt_instance_id() {
-                        Ok(instance_id) => {
-                            self.add_output("Attempting to redeploy instance".to_string());
-                            if !redeploy_instance(&instance_id) {
-                                self.add_output(
-                                    "[ERROR] Cannot proceed without successful redeploy"
-                                        .to_string(),
-                                );
-                                return ActionResult::Continue;
-                            }
-                            match Command::new("helix").arg("check").output() {
-                                Ok(output) if output.status.success() => {
-                                    self.add_output("[CORRECT] Helix check passed".to_string());
-
-                                    let lesson_data =
-                                        fs::read_to_string(query_answer_path).unwrap();
-                                    let lesson_json: serde_json::Value =
-                                        serde_json::from_str(&lesson_data).unwrap();
-
-                                    let queries = lesson_json["queries"].as_array().unwrap();
-                                    for (index, query_test) in queries.iter().enumerate() {
-                                        let query_name = query_test["query_name"].as_str().unwrap();
-                                        let input = query_test["input"].clone();
-
-                                        self.add_output(format!(
-                                            "Testing query {} of {}: {}",
-                                            index + 1,
-                                            queries.len(),
-                                            query_name
-                                        ));
-                                        let query_instance: QueryValidator = QueryValidator::new();
-                                        let comparison = query_instance
-                                            .execute_and_compare(query_name, input)
-                                            .await;
-                                        match comparison {
-                                            Ok((success, message)) => {
-                                                let status = if success {
-                                                    "[CORRECT]"
-                                                } else {
-                                                    "[INCORRECT]"
-                                                };
-                                                self.add_output(format!(
-                                                    "{} Query {}: {}",
-                                                    status, query_name, message
-                                                ));
-                                                if !success {
-                                                    return ActionResult::Continue;
-                                                }
-                                            }
-                                            Err(e) => {
-                                                let error_msg = e.to_string();
-                                                if error_msg
-                                                    .contains("error decoding response body")
-                                                {
-                                                    self.add_output(format!(
-                                                        "[ERROR] Deserialization error in query {}: {}",
-                                                        query_name, error_msg
-                                                    ));
-                                                    self.add_output(
-                                                        "[ERROR] Check if server response format matches lesson_types.rs structures".to_string()
-                                                    );
-                                                }
-                                                return ActionResult::Continue;
-                                            }
-                                        }
-                                    }
-                                    let _ = mark_lesson_completed(self.current_lesson);
-                                    self.add_output(
-                                        "[CORRECT] Lesson completed! Great job!".to_string(),
-                                    );
-                                    return ActionResult::Continue;
-                                }
-                                _ => {
-                                    self.add_output(
-                                        "[ERROR] Helix check failed. Fix your queries.hx file"
-                                            .to_string(),
-                                    );
-                                    return ActionResult::Continue;
-                                }
-                            }
-                        }
-                        Err(e) => {
-                            self.add_output(format!("[ERROR] Error getting instance ID: {}", e));
+                    if self.current_lesson == 5 {
+                        self.add_output("Running database queries...".to_string());
+                    } else {
+                        self.add_output("Deploying queries to cluster...".to_string());
+                        if !redeploy_instance() {
+                            self.add_output(
+                                "[ERROR] Cannot proceed without successful deployment".to_string(),
+                            );
                             return ActionResult::Continue;
                         }
+                        self.add_output("Running database queries...".to_string());
                     }
+
+                    let lesson_data = fs::read_to_string(query_answer_path).unwrap();
+                    let lesson_json: serde_json::Value =
+                        serde_json::from_str(&lesson_data).unwrap();
+
+                    let queries = lesson_json["queries"].as_array().unwrap();
+                    for (index, query_test) in queries.iter().enumerate() {
+                        let query_name = query_test["query_name"].as_str().unwrap();
+                        let input = query_test["input"].clone();
+
+                        self.add_output(format!(
+                            "Testing query {} of {}: {}",
+                            index + 1,
+                            queries.len(),
+                            query_name
+                        ));
+                        let query_instance: QueryValidator = QueryValidator::new();
+                        let comparison =
+                            query_instance.execute_and_compare(query_name, input).await;
+                        match comparison {
+                            Ok((success, message)) => {
+                                let status = if success { "[CORRECT]" } else { "[INCORRECT]" };
+                                self.add_output(format!(
+                                    "{} Query {}: {}",
+                                    status, query_name, message
+                                ));
+                                if !success {
+                                    return ActionResult::Continue;
+                                }
+                            }
+                            Err(e) => {
+                                let error_msg = e.to_string();
+                                if error_msg.contains("error decoding response body") {
+                                    self.add_output(format!(
+                                        "[ERROR] Deserialization error in query {}: {}",
+                                        query_name, error_msg
+                                    ));
+                                    self.add_output(
+                                        "[ERROR] Check if server response format matches lesson_types.rs structures".to_string()
+                                    );
+                                } else {
+                                    self.add_output(format!(
+                                        "[ERROR] Query execution failed: {}",
+                                        error_msg
+                                    ));
+                                }
+                                return ActionResult::Continue;
+                            }
+                        }
+                    }
+                    let _ = mark_lesson_completed(self.current_lesson);
+                    self.add_output("[CORRECT] Lesson completed! Great job!".to_string());
+                    return ActionResult::Continue;
                 }
                 if let Some(expected_path) = &lesson.schema_answer {
                     match (
@@ -338,6 +344,19 @@ impl App {
                                                 "[ERROR] Extra properties: {:?}",
                                                 errors.extra
                                             ));
+                                        }
+                                        if !errors.wrong_type.is_empty() {
+                                            self.add_output(
+                                                "[ERROR] Property type errors:".to_string(),
+                                            );
+                                            for (prop_name, expected_type, actual_type) in
+                                                &errors.wrong_type
+                                            {
+                                                self.add_output(format!(
+                                                    "[ERROR] Property '{}' has wrong type: expected '{}', got '{}'",
+                                                    prop_name, expected_type, actual_type
+                                                ));
+                                            }
                                         }
                                     }
                                 }
@@ -404,6 +423,19 @@ impl App {
                                                 "[ERROR] Extra properties: {:?}",
                                                 errors.extra
                                             ));
+                                        }
+                                        if !errors.wrong_type.is_empty() {
+                                            self.add_output(
+                                                "[ERROR] Property type errors:".to_string(),
+                                            );
+                                            for (prop_name, expected_type, actual_type) in
+                                                &errors.wrong_type
+                                            {
+                                                self.add_output(format!(
+                                                    "[ERROR] Property '{}' has wrong type: expected '{}', got '{}'",
+                                                    prop_name, expected_type, actual_type
+                                                ));
+                                            }
                                         }
                                     }
                                 }
@@ -535,15 +567,6 @@ impl App {
             self.current_lesson
         ));
 
-        let instance_id = match get_or_prompt_instance_id() {
-            Ok(id) => id,
-            Err(e) => {
-                self.formatter
-                    .display_error(&format!("Error getting instance ID: {}", e));
-                return ActionResult::Continue;
-            }
-        };
-
         for lesson_id in 0..self.current_lesson {
             let lesson = get_lesson(lesson_id);
 
@@ -555,9 +578,9 @@ impl App {
                 .display_info(&format!("Running lesson {}: {}", lesson_id, lesson.title));
 
             if let Some(query_answer_path) = &lesson.query_answer {
-                if !redeploy_instance(&instance_id) {
+                if !redeploy_instance() {
                     self.formatter
-                        .display_error(&format!("Failed to redeploy for lesson {}", lesson_id));
+                        .display_error(&format!("Failed to compile for lesson {}", lesson_id));
                     continue;
                 }
 

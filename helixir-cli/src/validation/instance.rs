@@ -1,4 +1,4 @@
-use std::{fs, io, process::Command};
+use std::{fs, process::Command};
 
 use serde_json::json;
 
@@ -14,9 +14,9 @@ pub fn load_instance_data() -> serde_json::Value {
 
 pub fn create_default_instance_data() -> serde_json::Value {
     json!({
-        "instance_id": "",
         "current_lesson": 0,
         "completed_lessons": [],
+        "instance_id": "",
         "created_entities": {
             "continents": [],
             "countries": [],
@@ -34,6 +34,17 @@ pub fn save_instance_data(data: &serde_json::Value) -> Result<(), String> {
         .map_err(|e| format!("Failed to write instance file: {}", e))?;
 
     Ok(())
+}
+
+pub fn get_instance_id() -> Option<String> {
+    let instance_data = load_instance_data();
+    instance_data["instance_id"].as_str().map(|s| s.to_string())
+}
+
+pub fn save_instance_id(instance_id: &str) -> Result<(), String> {
+    let mut instance_data = load_instance_data();
+    instance_data["instance_id"] = json!(instance_id);
+    save_instance_data(&instance_data)
 }
 
 pub fn save_created_entity(
@@ -60,33 +71,6 @@ pub fn get_latest_entity_id(entity_type: &str) -> Option<String> {
     }
 
     None
-}
-
-pub fn get_or_prompt_instance_id() -> Result<String, String> {
-    let instance_data = load_instance_data();
-    if let Some(instance_id) = instance_data["instance_id"].as_str() {
-        if !instance_id.is_empty() {
-            return Ok(instance_id.to_string());
-        }
-    }
-
-    println!("First time running queries! We need your HelixDB instance ID.");
-    println!("Run 'helix status' in another terminal and copy your instance ID.");
-    println!("Enter your instance ID:");
-
-    let mut input = String::new();
-    io::stdin()
-        .read_line(&mut input)
-        .map_err(|e| format!("Failed to read input: {}", e))?;
-    let instance_id = input.trim().to_string();
-
-    let mut instance_data = load_instance_data();
-    instance_data["instance_id"] = json!(instance_id.clone());
-    save_instance_data(&instance_data)
-        .map_err(|e| format!("Failed to save to instance.json: {}", e))?;
-
-    println!("Instance ID saved! Future query runs will be automatic.");
-    Ok(instance_id)
 }
 
 pub fn get_current_lesson() -> usize {
@@ -131,27 +115,24 @@ pub fn is_lesson_completed(lesson_id: usize) -> bool {
     get_completed_lessons().contains(&lesson_id)
 }
 
-pub fn redeploy_instance(instance_id: &str) -> bool {
-    // println!("Running: helix redeploy --cluster {}", instance_id);
+pub fn redeploy_instance() -> bool {
+    let instance_data = load_instance_data();
+    let instance_id = instance_data["instance_id"].as_str().unwrap_or_default();
 
-    let output = Command::new("helix")
-        .arg("compile")
-        // .arg("--cluster")
-        // .arg(instance_id)
-        .output();
+    let output = if instance_id.is_empty() {
+        println!("Warning: No instance_id found in instance.json, falling back to helix compile");
+        Command::new("helix").arg("compile").output()
+    } else {
+        println!("Deploying to cluster: {}", instance_id);
+        Command::new("helix")
+            .args(["deploy", "--cluster", instance_id])
+            .output()
+    };
 
     match output {
         Ok(result) => {
             let stdout_str = String::from_utf8_lossy(&result.stdout);
             let stderr_str = String::from_utf8_lossy(&result.stderr);
-
-            if stdout_str.contains("No Helix instance found")
-                || stderr_str.contains("No Helix instance found")
-            {
-                println!("Error: Invalid instance ID '{}'", instance_id);
-                println!("Run 'helix status' to get your correct instance ID");
-                return false;
-            }
 
             if !stdout_str.is_empty() {
                 println!("Output: {}", stdout_str);
@@ -169,17 +150,25 @@ pub fn redeploy_instance(instance_id: &str) -> bool {
                 println!("Deployment failed due to compilation errors");
                 return false;
             }
-
-            if result.status.success() && !stdout_str.contains("No Helix instance found") {
-                println!("Redeployed instance successfully");
+            let has_success_indicators = stdout_str.contains("Successfully compiled") 
+                && stdout_str.contains("Successfully built") 
+                && stdout_str.contains("Successfully started");
+                
+            let has_basic_success = stdout_str.contains("Successfully transpiled") 
+                && stdout_str.contains("Helix instance found");
+            let instance_running = stdout_str.contains("Helix instance found!") 
+                && stdout_str.contains("Available endpoints:");
+            
+            if result.status.success() || has_success_indicators || has_basic_success || instance_running {
+                println!("Deployed successfully");
                 true
             } else {
-                println!("Failed to redeploy instance");
+                println!("Failed to deploy");
                 false
             }
         }
         Err(e) => {
-            println!("Error running helix redeploy: {}", e);
+            println!("Error running helix command: {}", e);
             false
         }
     }

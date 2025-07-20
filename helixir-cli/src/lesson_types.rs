@@ -201,13 +201,12 @@ pub struct GetCapitalResult {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CountryNameData {
-    pub name: Vec<String>,
-    pub population: Vec<u64>,
+    pub name: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct GetCountryNamesResult {
-    pub countries: Vec<CountryNameData>,
+    pub countries: Vec<String>,
 }
 
 // get nodes by name lesson

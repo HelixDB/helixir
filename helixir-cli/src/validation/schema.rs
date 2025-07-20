@@ -1,5 +1,10 @@
-use std::{collections::{HashMap, HashSet}, fs};
-use crate::validation::{EdgeErrors, EdgeInfo, ParsedSchema, Property, PropertyErrors, ValidationResult};
+use crate::validation::{
+    EdgeErrors, EdgeInfo, ParsedSchema, Property, PropertyErrors, ValidationResult,
+};
+use std::{
+    collections::{HashMap, HashSet},
+    fs,
+};
 
 impl ParsedSchema {
     pub fn from_file(file_path: &str) -> Result<Self, String> {
@@ -130,21 +135,48 @@ impl ParsedSchema {
             let user_properties: &HashSet<Property> = &self.nodes[node];
             let expected_properties: &HashSet<Property> = &expected.nodes[node];
 
-            if user_properties != expected_properties {
-                let missing: Vec<String> = expected_properties
-                    .difference(user_properties)
-                    .map(|prop| prop.name.clone())
-                    .collect();
+            let user_prop_map: HashMap<&String, &String> = user_properties
+                .iter()
+                .map(|p| (&p.name, &p.prop_type))
+                .collect();
 
-                let extra: Vec<String> = user_properties
-                    .difference(expected_properties)
-                    .map(|prop| prop.name.clone())
-                    .collect();
+            let expected_prop_map: HashMap<&String, &String> = expected_properties
+                .iter()
+                .map(|p| (&p.name, &p.prop_type))
+                .collect();
 
+            let user_prop_names: HashSet<&String> = user_prop_map.keys().cloned().collect();
+            let expected_prop_names: HashSet<&String> = expected_prop_map.keys().cloned().collect();
+
+            let missing: Vec<String> = expected_prop_names
+                .difference(&user_prop_names)
+                .map(|name| (*name).clone())
+                .collect();
+
+            let extra: Vec<String> = user_prop_names
+                .difference(&expected_prop_names)
+                .map(|name| (*name).clone())
+                .collect();
+
+            let mut wrong_type: Vec<(String, String, String)> = Vec::new();
+            for prop_name in user_prop_names.intersection(&expected_prop_names) {
+                let user_type = user_prop_map.get(prop_name).unwrap();
+                let expected_type = expected_prop_map.get(prop_name).unwrap();
+
+                if user_type != expected_type {
+                    wrong_type.push((
+                        (*prop_name).clone(),
+                        (*expected_type).clone(),
+                        (*user_type).clone(),
+                    ));
+                }
+            }
+
+            if !missing.is_empty() || !extra.is_empty() || !wrong_type.is_empty() {
                 let prop_errors = PropertyErrors {
                     missing,
                     extra,
-                    wrong_type: Vec::new(),
+                    wrong_type,
                 };
 
                 property_errors.insert(node.clone(), prop_errors);
@@ -231,21 +263,48 @@ impl ParsedSchema {
             let user_properties: &HashSet<Property> = &self.vectors[vector];
             let expected_properties: &HashSet<Property> = &expected.vectors[vector];
 
-            if user_properties != expected_properties {
-                let missing: Vec<String> = expected_properties
-                    .difference(user_properties)
-                    .map(|prop| prop.name.clone())
-                    .collect();
+            let user_prop_map: HashMap<&String, &String> = user_properties
+                .iter()
+                .map(|p| (&p.name, &p.prop_type))
+                .collect();
 
-                let extra: Vec<String> = user_properties
-                    .difference(expected_properties)
-                    .map(|prop| prop.name.clone())
-                    .collect();
+            let expected_prop_map: HashMap<&String, &String> = expected_properties
+                .iter()
+                .map(|p| (&p.name, &p.prop_type))
+                .collect();
 
+            let user_prop_names: HashSet<&String> = user_prop_map.keys().cloned().collect();
+            let expected_prop_names: HashSet<&String> = expected_prop_map.keys().cloned().collect();
+
+            let missing: Vec<String> = expected_prop_names
+                .difference(&user_prop_names)
+                .map(|name| (*name).clone())
+                .collect();
+
+            let extra: Vec<String> = user_prop_names
+                .difference(&expected_prop_names)
+                .map(|name| (*name).clone())
+                .collect();
+
+            let mut wrong_type: Vec<(String, String, String)> = Vec::new();
+            for prop_name in user_prop_names.intersection(&expected_prop_names) {
+                let user_type = user_prop_map.get(prop_name).unwrap();
+                let expected_type = expected_prop_map.get(prop_name).unwrap();
+
+                if user_type != expected_type {
+                    wrong_type.push((
+                        (*prop_name).clone(),
+                        (*expected_type).clone(),
+                        (*user_type).clone(),
+                    ));
+                }
+            }
+
+            if !missing.is_empty() || !extra.is_empty() || !wrong_type.is_empty() {
                 let prop_errors = PropertyErrors {
                     missing,
                     extra,
-                    wrong_type: Vec::new(),
+                    wrong_type,
                 };
 
                 vector_errors.insert(vector.clone(), prop_errors);

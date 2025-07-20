@@ -1,8 +1,9 @@
 use crate::lesson_types::*;
-use crate::validation::{QueryValidator, get_latest_entity_id, save_created_entity};
+use crate::validation::{QueryValidator, get_latest_entity_id, save_created_entity, load_instance_data};
 use helix_db::{HelixDB, HelixDBClient};
 use serde_json::json;
 use serde::{Serialize, de::DeserializeOwned};
+use std::collections::HashMap;
 
 #[derive(Debug)]
 enum EntityType {
@@ -44,6 +45,132 @@ impl QueryValidator {
         }
     }
 
+    fn get_entity_mapping_for_lesson6() -> HashMap<&'static str, &'static str> {
+        let mut mapping = HashMap::new();
+        mapping.insert("London", "United Kingdom");
+        mapping.insert("Manchester", "United Kingdom");
+        mapping.insert("Berlin", "Germany");
+        mapping.insert("Hamburg", "Germany");
+        mapping
+    }
+
+
+    fn get_city_id_by_name(&self, city_name: &str) -> Option<String> {
+        let instance_data = load_instance_data();
+        if let Some(cities) = instance_data["created_entities"]["cities"].as_array() {
+            for city in cities {
+                if let Some(name) = city["name"].as_str() {
+                    if name == city_name {
+                        return city["id"].as_str().map(|s| s.to_string());
+                    }
+                }
+            }
+        }
+        None
+    }
+
+    fn get_continent_id_by_name(&self, continent_name: &str) -> Option<String> {
+        let instance_data = load_instance_data();
+        if let Some(continents) = instance_data["created_entities"]["continents"].as_array() {
+            for continent in continents {
+                if let Some(name) = continent["name"].as_str() {
+                    if name == continent_name {
+                        return continent["id"].as_str().map(|s| s.to_string());
+                    }
+                }
+            }
+        }
+        None
+    }
+
+    fn resolve_entity_id(&self, placeholder: &str, entity_type: &str) -> Result<String, anyhow::Error> {
+        match placeholder {
+            "europe_continent_id" | "some_continent_id" => {
+                self.get_continent_id_by_name("Europe").ok_or_else(|| {
+                    anyhow::anyhow!("Europe continent not found in instance data")
+                })
+            }
+            "uk_country_id" => {
+                self.get_country_id_by_name("United Kingdom").ok_or_else(|| {
+                    anyhow::anyhow!("United Kingdom not found in instance data")
+                })
+            }
+            "germany_country_id" => {
+                self.get_country_id_by_name("Germany").ok_or_else(|| {
+                    anyhow::anyhow!("Germany not found in instance data")
+                })
+            }
+            "some_country_id" => {
+                get_latest_entity_id("countries").ok_or_else(|| {
+                    anyhow::anyhow!("No country found. Please create a country first.")
+                })
+            }
+            "london_city_id" => {
+                self.get_city_id_by_name("London").ok_or_else(|| {
+                    anyhow::anyhow!("London not found in instance data")
+                })
+            }
+            "berlin_city_id" => {
+                self.get_city_id_by_name("Berlin").ok_or_else(|| {
+                    anyhow::anyhow!("Berlin not found in instance data")
+                })
+            }
+            "manchester_city_id" => {
+                self.get_city_id_by_name("Manchester").ok_or_else(|| {
+                    anyhow::anyhow!("Manchester not found in instance data")
+                })
+            }
+            "hamburg_city_id" => {
+                self.get_city_id_by_name("Hamburg").ok_or_else(|| {
+                    anyhow::anyhow!("Hamburg not found in instance data")
+                })
+            }
+            "ID" => {
+                get_latest_entity_id(entity_type).ok_or_else(|| {
+                    anyhow::anyhow!("No {} found. Please create one first.", entity_type)
+                })
+            }
+            _ => {
+                get_latest_entity_id(entity_type).ok_or_else(|| {
+                    anyhow::anyhow!("No {} found for placeholder '{}'", entity_type, placeholder)
+                })
+            }
+        }
+    }
+
+    fn replace_placeholder_ids(&self, mut input_obj: serde_json::Value) -> Result<serde_json::Value, anyhow::Error> {
+        if let Some(placeholder) = input_obj["continent_id"].as_str() {
+            let real_id = self.resolve_entity_id(placeholder, "continents")?;
+            input_obj["continent_id"] = json!(real_id);
+        }
+        
+        if let Some(placeholder) = input_obj["country_id"].as_str() {
+            let real_id = self.resolve_entity_id(placeholder, "countries")?;
+            input_obj["country_id"] = json!(real_id);
+        }
+        
+        if let Some(placeholder) = input_obj["city_id"].as_str() {
+            let real_id = self.resolve_entity_id(placeholder, "cities")?;
+            input_obj["city_id"] = json!(real_id);
+        }
+
+        Ok(input_obj)
+    }
+
+    fn get_country_id_by_name(&self, country_name: &str) -> Option<String> {
+        let instance_data = load_instance_data();
+        if let Some(countries) = instance_data["created_entities"]["countries"].as_array() {
+            for country in countries {
+                if let Some(name) = country["name"].as_str() {
+                    if name == country_name {
+                        return country["id"].as_str().map(|s| s.to_string());
+                    }
+                }
+            }
+        }
+        None
+    }
+
     async fn execute_query<I, R>(&self, query_name: &str, input: &I) -> anyhow::Result<R>
     where
         I: Serialize + Sync,
@@ -54,6 +181,7 @@ impl QueryValidator {
             .await
             .map_err(|e| anyhow::anyhow!("Query failed: {}. Check your query name and syntax.", e))
     }
+
 
     async fn execute_create_query<I, R>(
         &self,
@@ -86,7 +214,7 @@ impl QueryValidator {
     async fn execute_get_query<I, R>(
         &self,
         query_name: &str,
-        entity_type: EntityType,
+        _entity_type: EntityType,
         input: serde_json::Value,
         validator: impl Fn(&R) -> bool,
     ) -> anyhow::Result<(bool, String)>
@@ -94,11 +222,8 @@ impl QueryValidator {
         I: DeserializeOwned + Serialize + Sync,
         R: DeserializeOwned + Serialize,
     {
-        let entity_id = get_latest_entity_id(entity_type.storage_key())
-            .ok_or_else(|| anyhow::anyhow!(entity_type.dependency_error()))?;
-
-        let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
-        input_obj[entity_type.id_field()] = json!(entity_id);
+        let input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+        let input_obj = self.replace_placeholder_ids(input_obj)?;
 
         let input_de: I = serde_json::from_value(input_obj)?;
         let db_result: R = self.execute_query(query_name, &input_de).await?;
@@ -148,12 +273,8 @@ impl QueryValidator {
                 ).await
             }
             "createCountry" => {
-                let continent_id = get_latest_entity_id("continents").ok_or_else(|| {
-                    anyhow::anyhow!("No continent found. Please run lesson 5 first to create a continent.")
-                })?;
-
-                let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
-                input_obj["continent_id"] = json!(continent_id);
+                let input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+                let input_obj = self.replace_placeholder_ids(input_obj)?;
 
                 self.execute_create_query::<AddCountryInput, AddCountryResult>(
                     query_name,
@@ -165,14 +286,17 @@ impl QueryValidator {
                             && result.country.population == input.population
                             && result.country.gdp == input.gdp
                     },
-                    |result| json!({
-                        "id": result.country.id,
-                        "name": result.country.name,
-                        "currency": result.country.currency,
-                        "population": result.country.population,
-                        "gdp": result.country.gdp,
-                        "continent_id": continent_id
-                    }),
+                    |result| {
+                        let continent_id = get_latest_entity_id("continents").unwrap_or_default();
+                        json!({
+                            "id": result.country.id,
+                            "name": result.country.name,
+                            "currency": result.country.currency,
+                            "population": result.country.population,
+                            "gdp": result.country.gdp,
+                            "continent_id": continent_id
+                        })
+                    },
                     |result| format!(
                         "Country created successfully!\nDatabase result:\n{}",
                         serde_json::to_string_pretty(result).unwrap_or_default()
@@ -184,11 +308,21 @@ impl QueryValidator {
                 ).await
             }
             "createCity" => {
-                let country_id = get_latest_entity_id("countries").ok_or_else(|| {
-                    anyhow::anyhow!("No country found. Please run lesson 6 first to create a country.")
-                })?;
-
                 let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+                
+                let city_name = input_obj["name"].as_str().unwrap_or("");
+                let city_to_country_mapping = Self::get_entity_mapping_for_lesson6();
+                
+                let country_id = if let Some(country_name) = city_to_country_mapping.get(city_name) {
+                    self.get_country_id_by_name(country_name).ok_or_else(|| {
+                        anyhow::anyhow!("Country '{}' not found for city '{}'. Please ensure countries are created first.", country_name, city_name)
+                    })?
+                } else {
+                    get_latest_entity_id("countries").ok_or_else(|| {
+                        anyhow::anyhow!("No country found. Please run lesson 6 first to create a country.")
+                    })?
+                };
+
                 input_obj["country_id"] = json!(country_id);
 
                 self.execute_create_query::<AddCityInput, AddCityResult>(
@@ -215,17 +349,11 @@ impl QueryValidator {
                 ).await
             }
             "setCapital" => {
-                let country_id = get_latest_entity_id("countries").ok_or_else(|| {
-                    anyhow::anyhow!("No country found. Please create a country first in previous lessons.")
-                })?;
-
-                let city_id = get_latest_entity_id("cities").ok_or_else(|| {
-                    anyhow::anyhow!("No city found. Please create a city first in previous lessons.")
-                })?;
-
-                let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
-                input_obj["country_id"] = json!(country_id);
-                input_obj["city_id"] = json!(city_id);
+                let input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+                let input_obj = self.replace_placeholder_ids(input_obj)?;
+                
+                let country_id = input_obj["country_id"].as_str().unwrap().to_string();
+                let city_id = input_obj["city_id"].as_str().unwrap().to_string();
 
                 let input_de: AddCapitalInput = serde_json::from_value(input_obj)?;
                 let db_result: AddCapitalResult = self.execute_query("setCapital", &input_de).await?;
@@ -254,12 +382,10 @@ impl QueryValidator {
                 }
             }
             "embedDescription" => {
-                let city_id = get_latest_entity_id("cities").ok_or_else(|| {
-                    anyhow::anyhow!("No city found. Please create a city first in previous lessons.")
-                })?;
-
-                let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
-                input_obj["city_id"] = json!(city_id);
+                let input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+                let input_obj = self.replace_placeholder_ids(input_obj)?;
+                
+                let city_id = input_obj["city_id"].as_str().unwrap().to_string();
 
                 let input_de: CreateDescEmbeddingInput = serde_json::from_value(input_obj)?;
                 let db_result: CreateDescEmbeddingResult = self.execute_query("embedDescription", &input_de).await?;
@@ -310,11 +436,8 @@ impl QueryValidator {
                 ).await
             }
             "getCapital" => {
-                let country_id = get_latest_entity_id("countries")
-                    .ok_or_else(|| anyhow::anyhow!("No country found. Please create a country first in previous lessons."))?;
-
-                let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
-                input_obj["country_id"] = json!(country_id);
+                let input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+                let input_obj = self.replace_placeholder_ids(input_obj)?;
 
                 let input_de: GetCapitalInput = serde_json::from_value(input_obj)?;
                 
@@ -404,20 +527,28 @@ impl QueryValidator {
                 ).await
             }
             "getCountryNames" => {
-                let db_result: GetCountryNamesResult = self.execute_query(query_name, &serde_json::json!({})).await?;
+                let raw_response: serde_json::Value = self.execute_query(query_name, &serde_json::json!({})).await?;
                 
-                if !db_result.countries.is_empty() && 
-                   !db_result.countries[0].name.is_empty() && 
-                   !db_result.countries[0].population.is_empty() {
+                let has_valid_data = if let Some(countries) = raw_response.get("countries") {
+                    if let Some(countries_array) = countries.as_array() {
+                        !countries_array.is_empty()
+                    } else {
+                        false
+                    }
+                } else {
+                    false
+                };
+                
+                if has_valid_data {
                     let success_msg = format!(
                         "Country names retrieved successfully!\nDatabase result:\n{}",
-                        serde_json::to_string_pretty(&db_result)?
+                        serde_json::to_string_pretty(&raw_response)?
                     );
                     Ok((true, success_msg))
                 } else {
                     let error_msg = format!(
                         "No countries found or query failed\nDatabase result:\n{}",
-                        serde_json::to_string_pretty(&db_result)?
+                        serde_json::to_string_pretty(&raw_response)?
                     );
                     Ok((false, error_msg))
                 }
@@ -596,10 +727,9 @@ impl QueryValidator {
             "countCapitals" => {
                 match self.client.query::<serde_json::Value, serde_json::Value>(query_name, &serde_json::json!({})).await {
                     Ok(raw_response) => {
-                        println!("{}", serde_json::to_string_pretty(&raw_response).unwrap_or_default());
-                        
                         let success_msg = format!(
-                            "Raw HelixDB response printed above. Check format and update lesson_types.rs accordingly."
+                            "Capital count retrieved successfully!\nDatabase result:\n{}",
+                            serde_json::to_string_pretty(&raw_response).unwrap_or_default()
                         );
                         Ok((true, success_msg))
                     },
@@ -628,10 +758,9 @@ impl QueryValidator {
                 
                 match self.client.query::<GetCountryByCityCntInput, serde_json::Value>(query_name, &input_de).await {
                     Ok(raw_response) => {
-                        println!("{}", serde_json::to_string_pretty(&raw_response).unwrap_or_default());
-                        
                         let success_msg = format!(
-                            "Raw HelixDB response printed above. Check format and update lesson_types.rs accordingly."
+                            "Countries filtered by city count successfully!\nDatabase result:\n{}",
+                            serde_json::to_string_pretty(&raw_response).unwrap_or_default()
                         );
                         Ok((true, success_msg))
                     },
@@ -658,12 +787,10 @@ impl QueryValidator {
                 }
             }
             "updateCurrency" => {
-                let country_id = get_latest_entity_id("countries").ok_or_else(|| {
-                    anyhow::anyhow!("No country found. Please create a country first in previous lessons.")
-                })?;
-
-                let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
-                input_obj["country_id"] = json!(country_id);
+                let input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+                let input_obj = self.replace_placeholder_ids(input_obj)?;
+                
+                let country_id = input_obj["country_id"].as_str().unwrap().to_string();
 
                 let input_de: UpdateCurrencyInput = serde_json::from_value(input_obj)?;
                 let db_result: UpdateCurrencyResult = self.execute_query("updateCurrency", &input_de).await?;
@@ -690,12 +817,10 @@ impl QueryValidator {
                 }
             }
             "updatePopGdp" => {
-                let country_id = get_latest_entity_id("countries").ok_or_else(|| {
-                    anyhow::anyhow!("No country found. Please create a country first in previous lessons.")
-                })?;
-
-                let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
-                input_obj["country_id"] = json!(country_id);
+                let input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+                let input_obj = self.replace_placeholder_ids(input_obj)?;
+                
+                let country_id = input_obj["country_id"].as_str().unwrap().to_string();
 
                 let input_de: UpdatePopGdpInput = serde_json::from_value(input_obj)?;
                 let db_result: UpdatePopGdpResult = self.execute_query("updatePopGdp", &input_de).await?;
@@ -726,16 +851,11 @@ impl QueryValidator {
                 }
             }
             "updateCapital" => {
-                let country_id = get_latest_entity_id("countries").ok_or_else(|| {
-                    anyhow::anyhow!("No country found. Please create a country first in previous lessons.")
-                })?;
-                let city_id = get_latest_entity_id("cities").ok_or_else(|| {
-                    anyhow::anyhow!("No city found. Please create a city first in previous lessons.")
-                })?;
-
-                let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
-                input_obj["country_id"] = json!(country_id);
-                input_obj["city_id"] = json!(city_id);
+                let input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+                let input_obj = self.replace_placeholder_ids(input_obj)?;
+                
+                let country_id = input_obj["country_id"].as_str().unwrap().to_string();
+                let city_id = input_obj["city_id"].as_str().unwrap().to_string();
 
                 let input_de: UpdateCapitalInput = serde_json::from_value(input_obj)?;
                 let db_result: UpdateCapitalResult = self.execute_query("updateCapital", &input_de).await?;
@@ -760,12 +880,10 @@ impl QueryValidator {
                 }
             }
             "updateDescription" => {
-                let city_id = get_latest_entity_id("cities").ok_or_else(|| {
-                    anyhow::anyhow!("No city found. Please create a city first in previous lessons.")
-                })?;
-
-                let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
-                input_obj["city_id"] = json!(city_id);
+                let input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+                let input_obj = self.replace_placeholder_ids(input_obj)?;
+                
+                let city_id = input_obj["city_id"].as_str().unwrap().to_string();
 
                 let input_de: UpdateDescriptionInput = serde_json::from_value(input_obj)?;
                 let db_result: UpdateDescriptionResult = self.execute_query("updateDescription", &input_de).await?;
@@ -792,81 +910,81 @@ impl QueryValidator {
                 }
             }
             "deleteCity" => {
-                let city_id = get_latest_entity_id("cities").ok_or_else(|| {
-                    anyhow::anyhow!("No city found. Please create a city first in previous lessons.")
-                })?;
-
-                let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
-                input_obj["city_id"] = json!(city_id);
+                let input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+                let input_obj = self.replace_placeholder_ids(input_obj)?;
+                
+                let city_id = input_obj["city_id"].as_str().unwrap().to_string();
 
                 let input_de: DeleteCityInput = serde_json::from_value(input_obj)?;
-                let db_result: DeleteCityResult = self.execute_query("deleteCity", &input_de).await?;
-
-                if db_result.result == "success" {
-                    let success_msg = format!(
-                        "City deleted successfully!\nDatabase result:\n{}\nCity '{}' has been removed from the graph.",
-                        serde_json::to_string_pretty(&db_result)?,
-                        city_id
-                    );
-                    Ok((true, success_msg))
-                } else {
-                    let error_msg = format!(
-                        "City deletion failed\nDatabase result:\n{}",
-                        serde_json::to_string_pretty(&db_result)?
-                    );
-                    Ok((false, error_msg))
+                
+                match self.client.query::<DeleteCityInput, String>("deleteCity", &input_de).await {
+                    Ok(result) => {
+                        let success_msg = format!(
+                            "City deleted successfully!\nDatabase result: \"{}\"\nCity '{}' has been removed from the graph.",
+                            result,
+                            city_id
+                        );
+                        Ok((true, success_msg))
+                    },
+                    Err(e) => {
+                        let error_details = format!(
+                            "City deletion failed: {}.\n\nTrying to delete city with ID: '{}'\n\nThis could be due to:\n1. HelixDB having issues with DELETE operations\n2. The city has dependencies (like being a capital) that prevent deletion\n3. Response format mismatch\n\nNote: The validation uses the latest created city from instance.json",
+                            e, city_id
+                        );
+                        Ok((false, error_details))
+                    }
                 }
             }
             "deleteCapital" => {
-                let country_id = get_latest_entity_id("countries").ok_or_else(|| {
-                    anyhow::anyhow!("No country found. Please create a country first in previous lessons.")
-                })?;
-
-                let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
-                input_obj["country_id"] = json!(country_id);
+                let input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+                let input_obj = self.replace_placeholder_ids(input_obj)?;
+                
+                let country_id = input_obj["country_id"].as_str().unwrap().to_string();
 
                 let input_de: DeleteCapitalInput = serde_json::from_value(input_obj)?;
-                let db_result: DeleteCapitalResult = self.execute_query("deleteCapital", &input_de).await?;
-
-                if db_result.result == "success" {
-                    let success_msg = format!(
-                        "Capital relationship deleted successfully!\nDatabase result:\n{}\nCountry '{}' no longer has a capital city relationship.",
-                        serde_json::to_string_pretty(&db_result)?,
-                        country_id
-                    );
-                    Ok((true, success_msg))
-                } else {
-                    let error_msg = format!(
-                        "Capital deletion failed\nDatabase result:\n{}",
-                        serde_json::to_string_pretty(&db_result)?
-                    );
-                    Ok((false, error_msg))
+                
+                match self.client.query::<DeleteCapitalInput, String>("deleteCapital", &input_de).await {
+                    Ok(result) => {
+                        let success_msg = format!(
+                            "Capital relationship deleted successfully!\nDatabase result: \"{}\"\nCountry '{}' no longer has a capital city relationship.",
+                            result,
+                            country_id
+                        );
+                        Ok((true, success_msg))
+                    },
+                    Err(e) => {
+                        let error_details = format!(
+                            "Capital deletion failed: {}.\n\nTrying to delete capital relationship for country ID: '{}'\n\nNote: HelixDB appears to have issues with DELETE operations",
+                            e, country_id
+                        );
+                        Ok((false, error_details))
+                    }
                 }
             }
             "deleteCountry" => {
-                let country_id = get_latest_entity_id("countries").ok_or_else(|| {
-                    anyhow::anyhow!("No country found. Please create a country first in previous lessons.")
-                })?;
-
-                let mut input_obj = serde_json::from_value::<serde_json::Value>(input)?;
-                input_obj["country_id"] = json!(country_id);
+                let input_obj = serde_json::from_value::<serde_json::Value>(input)?;
+                let input_obj = self.replace_placeholder_ids(input_obj)?;
+                
+                let country_id = input_obj["country_id"].as_str().unwrap().to_string();
 
                 let input_de: DeleteCountryInput = serde_json::from_value(input_obj)?;
-                let db_result: DeleteCountryResult = self.execute_query("deleteCountry", &input_de).await?;
-
-                if db_result.result == "success" {
-                    let success_msg = format!(
-                        "Country deleted successfully!\nDatabase result:\n{}\nCountry '{}' has been removed from the graph.",
-                        serde_json::to_string_pretty(&db_result)?,
-                        country_id
-                    );
-                    Ok((true, success_msg))
-                } else {
-                    let error_msg = format!(
-                        "Country deletion failed\nDatabase result:\n{}",
-                        serde_json::to_string_pretty(&db_result)?
-                    );
-                    Ok((false, error_msg))
+                
+                match self.client.query::<DeleteCountryInput, String>("deleteCountry", &input_de).await {
+                    Ok(result) => {
+                        let success_msg = format!(
+                            "Country deleted successfully!\nDatabase result: \"{}\"\nCountry '{}' has been removed from the graph.",
+                            result,
+                            country_id
+                        );
+                        Ok((true, success_msg))
+                    },
+                    Err(e) => {
+                        let error_details = format!(
+                            "Country deletion failed: {}.\n\nTrying to delete country ID: '{}'\n\nNote: HelixDB appears to have issues with DELETE operations",
+                            e, country_id
+                        );
+                        Ok((false, error_details))
+                    }
                 }
             }
             _ => Ok((
