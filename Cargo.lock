@@ -319,7 +319,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "helixir-cli"
+name = "helixir"
 version = "0.1.0"
 dependencies = [
  "anyhow",

@@ -1,9 +1,9 @@
 [package]
-name = "helixir-cli"
+name = "helixir"
 version = "0.1.0"
 edition = "2021"
 description = "Interactive CLI tutorial for learning HelixDB"
-license = ""
+license = "MIT"
 readme = "../README.md"
 repository = "https://github.com/HelixDB/helixir"
 keywords = ["database", "graph", "tutorial", "helix", "cli"]
@@ -20,7 +20,7 @@ include = [
 ]
 
 [[bin]]
-name = "helixir-cli"
+name = "helixir"
 path = "src/main.rs"
 
 [dependencies]
