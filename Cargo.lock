@@ -335,12 +335,25 @@ dependencies = [
  "clearscreen",
  "colored",
  "helix-rs",
- "macros",
+ "helixir-macros",
  "regex",
  "serde",
  "serde_json",
  "textwrap",
  "tokio",
+]
+
+[[package]]
+name = "helixir-macros"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "26e64e542a6c53091a637d4be429963cc09db00ff7d8a32a2f8ef9f32903f06f"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "serde",
+ "serde_json",
+ "syn",
 ]
 
 [[package]]
@@ -660,17 +673,6 @@ name = "log"
 version = "0.4.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13dc2df351e3202783a1fe0d44375f7295ffb4049267b0f3018346dc122a1d94"
-
-[[package]]
-name = "macros"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "serde",
- "serde_json",
- "syn",
-]
 
 [[package]]
 name = "memchr"

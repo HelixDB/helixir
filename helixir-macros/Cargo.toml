@@ -1,27 +1,20 @@
 [package]
-name = "helixir"
+name = "helixir-macros"
 version = "0.1.1"
 edition = "2024"
 description = "Interactive CLI tutorial for learning HelixDB"
 license = "MIT"
-readme = "./README.md"
 repository = "https://github.com/HelixDB/helixir"
 keywords = ["database", "graph", "tutorial", "helix", "cli"]
 categories = ["command-line-utilities", "database", "games"]
 authors = ["Putt <putt@helix-db.com>", "HelixDB <founders@helix-db.com>"]
 
-[[bin]]
-name = "helixir"
-path = "src/main.rs"
+[lib]
+proc-macro = true
 
 [dependencies]
-clearscreen = "4.0.2"
+syn = { version = "2.0.1", features = ["full"] }
+quote = "1.0.37"
+proc-macro2 = "1.0.95"
 serde = { version = "1.0.219", features = ["derive"] }
-tokio = { version = "1.46.1", features = ["macros", "rt", "rt-multi-thread"] }
-anyhow = "1.0.98"
 serde_json = "1.0.130"
-colored = "2.1"
-textwrap = "0.16"
-regex = "1.10"
-helix-rs = "0.1.3"
-helixir-macros = "0.1.1"

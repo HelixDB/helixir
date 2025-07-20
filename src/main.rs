@@ -6,7 +6,7 @@ mod ui;
 mod validation;
 
 use app::App;
-use macros::parse_answers;
+use helixir_macros::parse_answers;
 
 #[parse_answers]
 fn main() {
