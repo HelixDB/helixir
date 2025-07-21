@@ -82,7 +82,7 @@ impl ParsedSchema {
                             if let Some((prop_name, prop_type)) = prop_line.split_once(':') {
                                 properties.insert(Property {
                                     name: prop_name.trim().to_string(),
-                                    prop_type: prop_type.trim().to_string(),
+                                    prop_type: prop_type.trim().trim_end_matches(',').to_string(),
                                 });
                             }
                         }
