@@ -44,7 +44,7 @@ impl EntityType {
 impl QueryValidator {
     pub fn new() -> Self {
         Self {
-            client: HelixDB::new(Some("http://localhost:6969"), None),
+            client: HelixDB::new(Some("http://localhost:6969"), None, None),
         }
     }
 
@@ -919,23 +919,24 @@ impl QueryValidator {
                 let city_id = input_obj["city_id"].as_str().unwrap().to_string();
 
                 let input_de: DeleteCityInput = serde_json::from_value(input_obj)?;
-                
-                match self.client.query::<DeleteCityInput, String>("deleteCity", &input_de).await {
-                    Ok(result) => {
-                        let success_msg = format!(
-                            "City deleted successfully!\nDatabase result: \"{}\"\nCity '{}' has been removed from the graph.",
-                            result,
-                            city_id
-                        );
-                        Ok((true, success_msg))
-                    },
-                    Err(e) => {
-                        let error_details = format!(
-                            "City deletion failed: {}.\n\nTrying to delete city with ID: '{}'\n\nThis could be due to:\n1. HelixDB having issues with DELETE operations\n2. The city has dependencies (like being a capital) that prevent deletion\n3. Response format mismatch\n\nNote: The validation uses the latest created city from instance.json",
-                            e, city_id
-                        );
-                        Ok((false, error_details))
-                    }
+
+                let db_result: DeleteCityResult = self.execute_query("deleteCity", &input_de).await?;
+
+                println!("db_result: {:?}", db_result);
+                if db_result.success == "success" {
+                    let success_msg = format!(
+                        "City deleted successfully!\nDatabase result: \"{}\"\nCity '{}' has been removed from the graph.",
+                        db_result.success,
+                        city_id
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "City deletion failed: {}.\n\nTrying to delete city with ID: '{}'\n\nThis could be due to:\n1. HelixDB having issues with DELETE operations\n2. The city has dependencies (like being a capital) that prevent deletion\n3. Response format mismatch\n\nNote: The validation uses the latest created city from instance.json",
+                        db_result.success,
+                        city_id
+                    );
+                    Ok((false, error_msg))
                 }
             }
             "deleteCapital" => {
@@ -946,22 +947,22 @@ impl QueryValidator {
 
                 let input_de: DeleteCapitalInput = serde_json::from_value(input_obj)?;
                 
-                match self.client.query::<DeleteCapitalInput, String>("deleteCapital", &input_de).await {
-                    Ok(result) => {
-                        let success_msg = format!(
-                            "Capital relationship deleted successfully!\nDatabase result: \"{}\"\nCountry '{}' no longer has a capital city relationship.",
-                            result,
-                            country_id
-                        );
-                        Ok((true, success_msg))
-                    },
-                    Err(e) => {
-                        let error_details = format!(
-                            "Capital deletion failed: {}.\n\nTrying to delete capital relationship for country ID: '{}'\n\nNote: HelixDB appears to have issues with DELETE operations",
-                            e, country_id
-                        );
-                        Ok((false, error_details))
-                    }
+                let db_result: DeleteCapitalResult = self.execute_query("deleteCapital", &input_de).await?;
+
+                if db_result.success == "success" {
+                    let success_msg = format!(
+                        "Capital relationship deleted successfully!\nDatabase result: \"{}\"\nCountry '{}' no longer has a capital city relationship.",
+                        db_result.success,
+                        country_id
+                    );
+                    Ok((true, success_msg))
+                } else {
+                    let error_msg = format!(
+                        "Capital deletion failed: {}.\n\nTrying to delete capital relationship for country ID: '{}'\n\nThis could be due to:\n1. HelixDB having issues with DELETE operations\n2. The country has dependencies (like having cities) that prevent deletion\n3. Response format mismatch\n\nNote: The validation uses the latest created country from instance.json",
+                        db_result.success,
+                        country_id
+                    );
+                    Ok((false, error_msg))
                 }
             }
             "deleteCountry" => {
@@ -972,24 +973,23 @@ impl QueryValidator {
 
                 let input_de: DeleteCountryInput = serde_json::from_value(input_obj)?;
                 
-                match self.client.query::<DeleteCountryInput, String>("deleteCountry", &input_de).await {
-                    Ok(result) => {
-                        let success_msg = format!(
-                            "Country deleted successfully!\nDatabase result: \"{}\"\nCountry '{}' has been removed from the graph.",
-                            result,
+                let db_result: DeleteCountryResult = self.execute_query("deleteCountry", &input_de).await?;
+                if db_result.success == "success" {
+                    let success_msg = format!(
+                        "Country deleted successfully!\nDatabase result: \"{}\"\nCountry '{}' has been removed from the graph.",
+                        db_result.success,
                             country_id
                         );
                         Ok((true, success_msg))
-                    },
-                    Err(e) => {
-                        let error_details = format!(
+                } else {
+                    let error_msg = format!(
                             "Country deletion failed: {}.\n\nTrying to delete country ID: '{}'\n\nNote: HelixDB appears to have issues with DELETE operations",
-                            e, country_id
+                            db_result.success,
+                            country_id
                         );
-                        Ok((false, error_details))
+                        Ok((false, error_msg))
                     }
                 }
-            }
             _ => Ok((
                 false,
                 format!(

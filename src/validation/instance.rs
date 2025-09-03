@@ -125,7 +125,11 @@ pub fn redeploy_instance() -> bool {
     } else {
         println!("Deploying to cluster: {}", instance_id);
         Command::new("helix")
-            .args(["deploy", "--cluster", instance_id])
+            .args(["stop", instance_id])
+            .output()
+            .unwrap();
+        Command::new("helix")
+            .args(["deploy", "-c", instance_id])
             .output()
     };
 
@@ -150,16 +154,20 @@ pub fn redeploy_instance() -> bool {
                 println!("Deployment failed due to compilation errors");
                 return false;
             }
-            let has_success_indicators = stdout_str.contains("Successfully compiled") 
-                && stdout_str.contains("Successfully built") 
+            let has_success_indicators = stdout_str.contains("Successfully compiled")
+                && stdout_str.contains("Successfully built")
                 && stdout_str.contains("Successfully started");
-                
-            let has_basic_success = stdout_str.contains("Successfully transpiled") 
+
+            let has_basic_success = stdout_str.contains("Successfully transpiled")
                 && stdout_str.contains("Helix instance found");
-            let instance_running = stdout_str.contains("Helix instance found!") 
+            let instance_running = stdout_str.contains("Helix instance found!")
                 && stdout_str.contains("Available endpoints:");
-            
-            if result.status.success() || has_success_indicators || has_basic_success || instance_running {
+
+            if result.status.success()
+                || has_success_indicators
+                || has_basic_success
+                || instance_running
+            {
                 println!("Deployed successfully");
                 true
             } else {

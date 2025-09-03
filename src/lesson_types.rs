@@ -410,7 +410,7 @@ pub struct DeleteCityInput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DeleteCityResult {
-    pub result: String,
+    pub success: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -420,7 +420,7 @@ pub struct DeleteCapitalInput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DeleteCapitalResult {
-    pub result: String,
+    pub success: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -430,6 +430,6 @@ pub struct DeleteCountryInput {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DeleteCountryResult {
-    pub result: String,
+    pub success: String,
 }
 
