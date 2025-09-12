@@ -3,7 +3,7 @@ use std::{fs, process::Command};
 use serde_json::json;
 
 pub fn load_instance_data() -> serde_json::Value {
-    let instance_file = "helixdb-cfg/instance.json";
+    let instance_file = "instance.json";
 
     if let Ok(content) = fs::read_to_string(instance_file) {
         serde_json::from_str(&content).unwrap_or_else(|_| create_default_instance_data())
@@ -26,7 +26,7 @@ pub fn create_default_instance_data() -> serde_json::Value {
 }
 
 pub fn save_instance_data(data: &serde_json::Value) -> Result<(), String> {
-    let instance_file = "helixdb-cfg/instance.json";
+    let instance_file = "instance.json";
     let content = serde_json::to_string_pretty(data)
         .map_err(|e| format!("Failed to serialize instance data: {}", e))?;
 

@@ -15,14 +15,15 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
         0 => Lesson {
             id: 0,
             title: "Setup - Initialize HelixDB".into(),
-            instructions: "Run 'helix init' to set up your helix instance (you can run it straight in this CLI)\nAlso you should open up helix docs to help you figure out best ways to write queries\nIf you get stuck along the way you can refer to the answers provided in lesson_answers folder.".into(),
-            hints: vec!["Check if helixdb-cfg folder exists".into()],
+            instructions: "Run 'helix init' to set up your helix instance (you can run it straight in this CLI)\nAlso you should open up helix docs to help you figure out best ways to write queries\nIf you get stuck along the way you can refer to the answers provided in lesson_answers folder.
+            \nYou must always run helixir inside the directory that you ran 'helix init' in".into(),
+            hints: vec!["Check if you have the files queries.hx and schema.hx where you ran 'helix init'".into()],
             query_name: None,   
         },
         1 => Lesson {
             id: 1,
             title: "Schema Design - Nodes".into(),
-            instructions: "Great, now you might have noticed that a helixdb-cfg folder appeared. In there you will start writing the schema for this tutorial.\nYou will model the relationships between continents, countries, and cities as a graph.\n\nFirst, you have to define what kind of entities/nodes will be in your graph. You will start with 3 types of nodes: continents, countries, and cities.\n\nNode Definitions:\n- The Continent node will have a name property (String)\n- The Country node will have: name (String), currency (String), population (U64), and gdp (F64)\n- The City node will have: name (String), description (String), and zip_codes (array of strings)\n\nCreate a Continent, Country, and City node with their respective properties in schema.hx, then run c to check your answer.".into(),
+            instructions: "Great, now you might have noticed that you have files called schema.hx and queries.hx. In there you will start writing the schema for this tutorial.\nYou will model the relationships between continents, countries, and cities as a graph.\n\nFirst, you have to define what kind of entities/nodes will be in your graph. You will start with 3 types of nodes: continents, countries, and cities.\n\nNode Definitions:\n- The Continent node will have a name property (String)\n- The Country node will have: name (String), currency (String), population (U64), and gdp (F64)\n- The City node will have: name (String), description (String), and zip_codes (array of strings)\n\nCreate a Continent, Country, and City node with their respective properties in schema.hx, then run c to check your answer.".into(),
             hints: vec!["Use N:: for nodes".into()],
             query_name: None,
         },
