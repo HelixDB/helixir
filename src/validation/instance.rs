@@ -16,7 +16,6 @@ pub fn create_default_instance_data() -> serde_json::Value {
     json!({
         "current_lesson": 0,
         "completed_lessons": [],
-        "instance_id": "",
         "created_entities": {
             "continents": [],
             "countries": [],
@@ -34,17 +33,6 @@ pub fn save_instance_data(data: &serde_json::Value) -> Result<(), String> {
         .map_err(|e| format!("Failed to write instance file: {}", e))?;
 
     Ok(())
-}
-
-pub fn get_instance_id() -> Option<String> {
-    let instance_data = load_instance_data();
-    instance_data["instance_id"].as_str().map(|s| s.to_string())
-}
-
-pub fn save_instance_id(instance_id: &str) -> Result<(), String> {
-    let mut instance_data = load_instance_data();
-    instance_data["instance_id"] = json!(instance_id);
-    save_instance_data(&instance_data)
 }
 
 pub fn save_created_entity(
@@ -116,67 +104,75 @@ pub fn is_lesson_completed(lesson_id: usize) -> bool {
 }
 
 pub fn redeploy_instance() -> bool {
-    let instance_data = load_instance_data();
-    let instance_id = instance_data["instance_id"].as_str().unwrap_or_default();
+    println!("Building and deploying instance with 'helix build dev'...");
 
-    let output = if instance_id.is_empty() {
-        println!("Warning: No instance_id found in instance.json, falling back to helix compile");
-        Command::new("helix").arg("compile").output()
-    } else {
-        println!("Deploying to cluster: {}", instance_id);
-        Command::new("helix")
-            .args(["stop", instance_id])
-            .output()
-            .unwrap();
-        Command::new("helix")
-            .args(["deploy", "-c", instance_id])
-            .output()
-    };
+    // Run helix build dev
+    let build_output = Command::new("helix")
+        .args(["build", "dev"])
+        .output();
 
-    match output {
+    match build_output {
         Ok(result) => {
             let stdout_str = String::from_utf8_lossy(&result.stdout);
             let stderr_str = String::from_utf8_lossy(&result.stderr);
 
             if !stdout_str.is_empty() {
-                println!("Output: {}", stdout_str);
+                println!("Build output: {}", stdout_str);
             }
             if !stderr_str.is_empty() {
-                println!("Error output: {}", stderr_str);
+                println!("Build errors: {}", stderr_str);
             }
 
             if stdout_str.contains("Parse error") || stderr_str.contains("Parse error") {
-                println!("Deployment failed due to parse errors in queries.hx");
+                println!("Build failed due to parse errors in queries.hx or schema.hx");
                 return false;
             }
 
             if stdout_str.contains("Error compiling") || stderr_str.contains("Error compiling") {
-                println!("Deployment failed due to compilation errors");
+                println!("Build failed due to compilation errors");
                 return false;
             }
-            let has_success_indicators = stdout_str.contains("Successfully compiled")
-                && stdout_str.contains("Successfully built")
-                && stdout_str.contains("Successfully started");
 
-            let has_basic_success = stdout_str.contains("Successfully transpiled")
-                && stdout_str.contains("Helix instance found");
-            let instance_running = stdout_str.contains("Helix instance found!")
-                && stdout_str.contains("Available endpoints:");
+            if !result.status.success() {
+                println!("Build failed with exit code: {:?}", result.status.code());
+                return false;
+            }
 
-            if result.status.success()
-                || has_success_indicators
-                || has_basic_success
-                || instance_running
-            {
-                println!("Deployed successfully");
+            println!("Build successful! Starting instance with 'helix push dev'...");
+        }
+        Err(e) => {
+            println!("Error running helix build command: {}", e);
+            return false;
+        }
+    }
+
+    // Run helix push dev
+    let push_output = Command::new("helix")
+        .args(["push", "dev"])
+        .output();
+
+    match push_output {
+        Ok(result) => {
+            let stdout_str = String::from_utf8_lossy(&result.stdout);
+            let stderr_str = String::from_utf8_lossy(&result.stderr);
+
+            if !stdout_str.is_empty() {
+                println!("Push output: {}", stdout_str);
+            }
+            if !stderr_str.is_empty() {
+                println!("Push errors: {}", stderr_str);
+            }
+
+            if result.status.success() {
+                println!("Instance deployed successfully!");
                 true
             } else {
-                println!("Failed to deploy");
+                println!("Failed to push instance");
                 false
             }
         }
         Err(e) => {
-            println!("Error running helix command: {}", e);
+            println!("Error running helix push command: {}", e);
             false
         }
     }

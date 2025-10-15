@@ -4,8 +4,8 @@ use crate::lessons::get_lesson;
 use crate::ui::{clear_screen, display_lesson, get_user_input};
 use crate::validation::{
     ParsedQueries, ParsedSchema, QueryValidator, check_helix_init, get_completed_lessons,
-    get_current_lesson, get_instance_id, mark_lesson_completed, redeploy_instance,
-    save_current_lesson, save_instance_id,
+    get_current_lesson, mark_lesson_completed, redeploy_instance,
+    save_current_lesson,
 };
 use colored::*;
 use std::collections::HashMap;
@@ -174,7 +174,7 @@ impl App {
                         .expect("Lesson HQL data should be compiled into binary");
 
                     match (
-                        ParsedQueries::from_file("helixdb-cfg/queries.hx"),
+                        ParsedQueries::from_file("db/queries.hx"),
                         ParsedQueries::from_string(expected_hql),
                     ) {
                         (Ok(user_queries), Ok(expected_queries)) => {
@@ -207,40 +207,6 @@ impl App {
                             self.add_output(
                                 "[CORRECT] Query structure validation passed".to_string(),
                             );
-
-                            if self.current_lesson >= 5 {
-                                let instance_id = get_instance_id();
-                                if instance_id.is_none() || instance_id.as_ref().unwrap().is_empty()
-                                {
-                                    println!(
-                                        "Please run helix deploy in a seperate terminal and copy paste your instance ID here so we can use it for future lessons:"
-                                    );
-                                    use std::io::{self, Write};
-                                    print!("Instance ID: ");
-                                    io::stdout().flush().unwrap();
-                                    let mut input = String::new();
-                                    io::stdin().read_line(&mut input).unwrap();
-                                    let new_instance_id = input.trim().to_string();
-
-                                    if new_instance_id.is_empty() {
-                                        self.add_output(
-                                            "[ERROR] Instance ID cannot be empty".to_string(),
-                                        );
-                                        return ActionResult::Continue;
-                                    }
-
-                                    if let Err(e) = save_instance_id(&new_instance_id) {
-                                        self.add_output(format!(
-                                            "[ERROR] Failed to save instance ID: {}",
-                                            e
-                                        ));
-                                        return ActionResult::Continue;
-                                    }
-
-                                    self.add_output("Instance ID saved successfully!".to_string());
-                                    self.clear_output();
-                                }
-                            }
                         }
                         (Err(e), _) => {
                             self.add_output(format!(
@@ -258,18 +224,14 @@ impl App {
                         }
                     }
 
-                    if self.current_lesson == 5 {
-                        self.add_output("Running database queries...".to_string());
-                    } else {
-                        self.add_output("Deploying queries to cluster...".to_string());
-                        if !redeploy_instance() {
-                            self.add_output(
-                                "[ERROR] Cannot proceed without successful deployment".to_string(),
-                            );
-                            return ActionResult::Continue;
-                        }
-                        self.add_output("Running database queries...".to_string());
+                    self.add_output("Deploying queries to cluster...".to_string());
+                    if !redeploy_instance() {
+                        self.add_output(
+                            "[ERROR] Cannot proceed without successful deployment".to_string(),
+                        );
+                        return ActionResult::Continue;
                     }
+                    self.add_output("Running database queries...".to_string());
 
                     let lesson_data = self
                         .get_lesson_answers(self.current_lesson as u32)
@@ -334,7 +296,7 @@ impl App {
                         .expect("Lesson HQL data should be compiled into binary");
 
                     match (
-                        ParsedSchema::from_file("helixdb-cfg/schema.hx"),
+                        ParsedSchema::from_file("db/schema.hx"),
                         ParsedSchema::from_string(expected_hql),
                     ) {
                         (Ok(user_schema), Ok(expected_schema)) => {

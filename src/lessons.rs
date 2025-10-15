@@ -17,7 +17,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
             title: "Setup - Initialize HelixDB".into(),
             instructions: "Run 'helix init' to set up your helix instance (you can run it straight in this CLI)\nAlso you should open up helix docs to help you figure out best ways to write queries\nIf you get stuck along the way you can refer to the answers provided in lesson_answers folder.
             \nYou must always run helixir inside the directory that you ran 'helix init' in".into(),
-            hints: vec!["Check if you have the files queries.hx and schema.hx where you ran 'helix init'".into()],
+            hints: vec!["Check if you have the files db/queries.hx and db/schema.hx in your project directory".into()],
             query_name: None,   
         },
         1 => Lesson {
@@ -51,7 +51,7 @@ pub fn get_lesson(lesson_id: usize) -> Lesson {
         5 => Lesson {
             id: 5,
             title: "Basic Node Creation".into(),
-            instructions: "Now that we have our schema, we need to write queries to insert the data. The best way to go about this given the structure of our data is to go from **top (broad)** to **bottom (narrow)** of the hierarchy.\n\nFirst, we will start with a basic query called createContinent to create a continent.\n\n**Key Points:**\n- Creation queries almost always include all the properties of the node in the arguments\n- In this case, we only need to know the continent's name\n- Use **AddN** to add a **Continent** node with property **name**\n\n**Query Parameters:** name: String\n\n**Important:** Don't forget to run **helix deploy** to deploy your schema and queries.".into(),
+            instructions: "Now that we have our schema, we need to write queries to insert the data. The best way to go about this given the structure of our data is to go from **top (broad)** to **bottom (narrow)** of the hierarchy.\n\nFirst, we will start with a basic query called createContinent to create a continent.\n\n**Key Points:**\n- Creation queries almost always include all the properties of the node in the arguments\n- In this case, we only need to know the continent's name\n- Use **AddN** to add a **Continent** node with property **name**\n\n**Query Parameters:** name: String\n\n**Important:** The instance will automatically be rebuilt and deployed when you check your answer.".into(),
             hints: vec!["Add this header into your query.hx: QUERY createContinent (name: String) =>".into()],
             query_name: Some(vec!["createContinent".into()]),
         },
